@@ -27,10 +27,28 @@ import dagger.hilt.android.EntryPointAccessors
 abstract class ResultListLiveData<T> protected constructor(protected val context: Context) : LiveData<T>() {
     private var mIsLoading = false
 
+    @Volatile
+    private var mCanceled = false
+
+    /**
+     * True once this LiveData has gone inactive - which, with the query switchMap in
+     * ResultListViewModel, means the query has been superseded (the user moved to another word).
+     * A long-running loadInBackground can check this to skip expensive work that no one will see.
+     */
+    protected val isCanceled: Boolean get() = mCanceled
+
     protected abstract fun loadInBackground(): T
+
+    /**
+     * Emit an intermediate result from the background thread, before loadInBackground returns its
+     * final value. Used to paint fast results immediately and fill in slow ones afterwards.
+     */
+    protected fun publishProgress(result: T) = postValue(result)
+
     override fun onActive() {
         if (value == null && !mIsLoading) {
             mIsLoading = true
+            mCanceled = false
             val entryPoint = EntryPointAccessors.fromApplication(
                 context.applicationContext,
                 NonAndroidEntryPoint::class.java
@@ -44,5 +62,9 @@ abstract class ResultListLiveData<T> protected constructor(protected val context
                 }
             )
         }
+    }
+
+    override fun onInactive() {
+        mCanceled = true
     }
 }

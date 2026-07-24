@@ -29,7 +29,6 @@ import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListData
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListLiveData
-import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Locale
 
@@ -39,34 +38,49 @@ class ThesaurusLiveData constructor(context: Context, private val query: String)
     }
 
     private val mThesaurus: Thesaurus
-    private val mPrefs: SettingsPrefs
     private val mFavorites: Favorites
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, NonAndroidEntryPoint::class.java)
         mThesaurus = entryPoint.thesaurus()
-        mPrefs = entryPoint.prefs()
         mFavorites = entryPoint.favorites()
     }
 
     override fun loadInBackground(): ResultListData<RTEntryViewModel> {
         Log.d(TAG, "loadInBackground: query=$query")
 
-        val data = ArrayList<RTEntryViewModel>()
         if (TextUtils.isEmpty(query)) return emptyResult()
-        // Reverse lookup is always on now (it used to be a setting): also surface words that list
-        // this word as one of their synonyms, not just the synonyms in this word's own entry.
-        val result = mThesaurus.lookup(query, true)
-        val entries = result.entries
-        if (entries.isEmpty()) return emptyResult()
-
         val favorites = mFavorites.getFavorites()
-        entries.forEach {
+
+        // Phase 1: the word's own synonyms/antonyms (an indexed "word=?" lookup). Publish it
+        // immediately so results appear right away.
+        val forward = mThesaurus.lookup(query, false)
+        val forwardData = buildEntries(forward, favorites)
+        if (forwardData.isNotEmpty()) publishProgress(ResultListData(forward.word, forwardData))
+
+        // If the user has already moved to another word, skip the reverse lookup - nobody would
+        // see its result.
+        if (isCanceled) return ResultListData(forward.word, forwardData)
+
+        // Phase 2: reverse lookup is always on now (it used to be a setting): also surface words
+        // that list this word as one of their synonyms. It reads the precomputed thesaurus_reverse
+        // index (see tools/rhymedb/build_db.py), so it's fast; its results get injected into the
+        // already-visible list. The forward block is a prefix of this full result, so the diff
+        // keeps the fast chips in place and just inserts the reverse ones.
+        val full = mThesaurus.lookup(query, true)
+        val fullData = buildEntries(full, favorites)
+        if (fullData.isEmpty()) return emptyResult()
+        return ResultListData(full.word, fullData)
+    }
+
+    private fun buildEntries(result: ThesaurusEntry, favorites: Set<String>): List<RTEntryViewModel> {
+        val data = ArrayList<RTEntryViewModel>()
+        result.entries.forEach {
             data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, it.wordType.name.lowercase(Locale.US)))
             addResultSection(favorites, data, R.string.thesaurus_section_synonyms, it.synonyms)
             addResultSection(favorites, data, R.string.thesaurus_section_antonyms, it.antonyms)
         }
-        return ResultListData(result.word, data)
+        return data
     }
 
     private fun emptyResult(): ResultListData<RTEntryViewModel> {

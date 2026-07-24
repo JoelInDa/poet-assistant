@@ -66,7 +66,12 @@ class RTEntryViewModel(context: Context, val type: Type, val text: String,
         if (type != other.type) return false
         if (text != other.text) return false
         if (hasDefinition != other.hasDefinition) return false
-        if (isFavorite != other.isFavorite) return false
+        // Compare the favorite *value*, not the ObservableBoolean instance. ObservableBoolean has
+        // no equals(), so comparing the objects is reference equality - and every RTEntryViewModel
+        // makes a fresh one, so two otherwise-identical items would never be equal. That made
+        // DiffUtil treat every item as changed across emissions, tearing down and rebuilding the
+        // whole list (a visible flash) instead of just inserting new items.
+        if (isFavorite.get() != other.isFavorite.get()) return false
 
         return true
     }
@@ -75,7 +80,7 @@ class RTEntryViewModel(context: Context, val type: Type, val text: String,
         var result = type.hashCode()
         result = 31 * result + text.hashCode()
         result = 31 * result + hasDefinition.hashCode()
-        result = 31 * result + isFavorite.hashCode()
+        result = 31 * result + isFavorite.get().hashCode()
         return result
     }
 
