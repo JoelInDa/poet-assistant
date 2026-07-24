@@ -238,11 +238,17 @@ class ResultListFragment<out T: Any> : Fragment() {
 
     private val mLayoutSettingChanged = Observer<SettingsPrefs.Layout> { reload() }
 
-    // When favorites change, refresh the star state on the pills we already have rather than
-    // re-running the whole query. The old reload() re-ran the (slow) rhyme lookup on every
-    // favorite toggle and made the list fade out and back in. The gold border is data-bound to
-    // each item's isFavorite, so flipping that observable repaints just the affected pills.
+    // When favorites change:
+    //  - On the Favorites tab, the whole list *is* the favorites, so it must reload to add/remove
+    //    words.
+    //  - On the lookup tabs (rhymer/thesaurus/dictionary) we only need to repaint the gold border,
+    //    so we flip the affected pills' isFavorite flag in place. Reloading those would re-run the
+    //    (slow) rhyme lookup and make the list fade out and back in on every favorite toggle.
     private val mFavoritesObserver = Observer<List<Favorite>> { favorites ->
+        if (mTab == Tab.FAVORITES) {
+            reload()
+            return@Observer
+        }
         val favoriteWords = HashSet<String>(favorites.size)
         favorites.forEach { favoriteWords.add(it.getWord()) }
         (mBinding.recyclerView.adapter as? ResultListAdapter<*>)?.getAll()?.forEach { item ->
