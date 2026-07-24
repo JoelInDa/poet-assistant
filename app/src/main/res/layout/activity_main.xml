@@ -23,7 +23,6 @@
 
     <data>
         <import type="android.view.View"/>
-        <import type="com.google.android.material.tabs.TabLayout"/>
     </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -60,11 +59,12 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/search_hint" />
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabs"
-                app:tabMode="@{@bool/tab_text? TabLayout.MODE_SCROLLABLE : TabLayout.MODE_FIXED}"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            <!--
+                The R/T/D/★ letter tabs were removed: they spent a whole row of a 3.3" screen on
+                icons. The mode indicator is now just the PagerTitleStrip inside the ViewPager,
+                which shows the current tool centred with the neighbours peeking in to signal
+                that you can swipe.
+            -->
 
         </com.google.android.material.appbar.AppBarLayout>
 

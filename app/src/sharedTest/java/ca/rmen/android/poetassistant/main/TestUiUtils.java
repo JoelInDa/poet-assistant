@@ -93,15 +93,8 @@ public class TestUiUtils {
         SystemClock.sleep(200);
     }
 
+    // The R/T/D/★ TabLayout was removed; the mode indicator is now only the PagerTitleStrip.
     public static void checkTitleStripOrTab(Context context, @StringRes int titleRes) {
-        if (context.getResources().getBoolean(R.bool.tab_text)) {
-            checkSelectedTab(context, titleRes);
-        } else {
-            checkTitleStripCenterTitle(context, titleRes);
-        }
-    }
-
-    private static void checkTitleStripCenterTitle(Context context, @StringRes int titleRes) {
         onView(withId(R.id.pager_title_strip)).check(matches(isDisplayed()));
         onView(allOf(withText(equalToIgnoringCase(context.getString(titleRes))),
                 childAtPosition(
@@ -110,13 +103,6 @@ public class TestUiUtils {
                         1),
                 isCompletelyDisplayed()))
                 .check(matches(isDisplayed()));
-
-    }
-
-    private static void checkSelectedTab(Context context, @StringRes int titleRes) {
-        onView(allOf(withText(equalToIgnoringCase(context.getString(titleRes))),
-                isDescendantOfA(withId(R.id.tabs))))
-                .check(matches(isSelected()));
     }
 
     public static void scrollToPreference(@StringRes int prefTitleRes) {

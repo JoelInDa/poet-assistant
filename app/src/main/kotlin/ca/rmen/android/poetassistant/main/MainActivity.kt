@@ -23,7 +23,6 @@ import android.app.ActivityManager
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import android.database.DataSetObserver
 import androidx.databinding.DataBindingUtil
 import android.media.AudioManager
 import android.net.Uri
@@ -111,19 +110,17 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setSupportActionBar(mBinding.toolbar)
         mPagerAdapter = PagerAdapter(this, supportFragmentManager, intent)
-        mPagerAdapter.registerDataSetObserver(mAdapterChangeListener)
 
-        // Set up the ViewPager with the sections adapter.
+        // Set up the ViewPager with the sections adapter. The mode indicator is the
+        // PagerTitleStrip inside the pager (see activity_main.xml) - there is no TabLayout.
         mBinding.viewPager.adapter = mPagerAdapter
         mBinding.viewPager.offscreenPageLimit = 5
         mBinding.viewPager.addOnPageChangeListener(mOnPageChangeListener)
 
-        mBinding.tabs.setupWithViewPager(mBinding.viewPager)
         val savedTab = SettingsPrefs.getTab(mPrefs)
         if (savedTab != null && savedTab.ordinal < mPagerAdapter.count) {
             mBinding.viewPager.currentItem = savedTab.ordinal
         }
-        mAdapterChangeListener.onChanged()
 
         // Back walks through the (word, tool) history; when it's empty, Back falls through to exit.
         mBackCallback = object : OnBackPressedCallback(false) {
@@ -359,23 +356,6 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
 
             // A user swipe to another tool, keeping the current word, is its own history step.
             mCurrent?.word?.let { word -> pushHistory(NavState(word, tab)) }
-        }
-    }
-
-    private val mAdapterChangeListener = object : DataSetObserver() {
-        override fun onChanged() {
-            for (i in 0 until mBinding.tabs.tabCount) {
-                val icon = mPagerAdapter.getIcon(i)
-                val tab = mBinding.tabs.getTabAt(i)
-                if (tab != null) {
-                    if (icon != null) {
-                        tab.setIcon(icon)
-                    }
-                    if (!resources.getBoolean(R.bool.tab_text)) {
-                        tab.text = null
-                    }
-                }
-            }
         }
     }
 }

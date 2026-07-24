@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
-import androidx.annotation.DrawableRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -80,17 +79,6 @@ class PagerAdapter(context: Context, fm: FragmentManager, intent: Intent) : Frag
     override fun getPageTitle(position: Int): CharSequence {
         val tab = getTabForPosition(position)
         return ResultListFactory.getTabName(mContext, tab).uppercase(Locale.getDefault())
-    }
-
-    @DrawableRes
-    fun getIcon(position: Int): Int? {
-        if (!mContext.resources.getBoolean(R.bool.tab_icons)) return null
-        return when (getTabForPosition(position)) {
-            Tab.RHYMER -> R.drawable.ic_tab_rhymer
-            Tab.THESAURUS -> R.drawable.ic_tab_thesaurus
-            Tab.DICTIONARY -> R.drawable.ic_tab_dictionary
-            Tab.FAVORITES -> R.drawable.ic_tab_star
-        }
     }
 
     fun getFragment(viewGroup: ViewGroup, tab: Tab): Fragment? {
