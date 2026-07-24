@@ -36,6 +36,10 @@ class DbModule() {
     fun providesUserDb(application: Application): UserDb {
         return Room.databaseBuilder(application,
                 UserDb::class.java, "userdata.db")
-                .addMigrations(UserDb.MIGRATION_1_2).build()
+                // No migration path from upstream's v1/v2 schema: this fork uses its own
+                // applicationId, so it never sees an existing userdata.db. Favorites can
+                // still be moved across with the export/import options in settings.
+                .fallbackToDestructiveMigration()
+                .build()
     }
 }

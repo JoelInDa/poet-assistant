@@ -147,7 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignWithParentIfMissing="true"
                 android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/btn_play"
+                android:layout_toStartOf="@id/btn_delete"
                 android:background="?selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:contentDescription="@string/action_search"
@@ -155,22 +155,6 @@
                 android:padding="8dp"
                 app:srcCompat="@drawable/ic_web_search"
                 android:focusable="true"/>
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btn_play"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignWithParentIfMissing="true"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/btn_delete"
-                android:background="?selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@string/tts_play"
-                android:onClick="@{() -> viewModel.speak()}"
-                android:padding="8dp"
-                app:srcCompat="@drawable/ic_play_circle"
-                android:focusable="true"/>
-
 
         </RelativeLayout>
 

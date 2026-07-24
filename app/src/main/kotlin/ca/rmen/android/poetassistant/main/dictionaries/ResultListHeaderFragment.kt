@@ -32,7 +32,6 @@ import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
-import ca.rmen.android.poetassistant.TtsState
 import ca.rmen.android.poetassistant.databinding.ResultListHeaderBinding
 import ca.rmen.android.poetassistant.main.Tab
 import java.util.Locale
@@ -76,8 +75,8 @@ class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogLi
             mBinding.viewModel = mViewModel
             mViewModel.snackbarText.observe(this, mSnackbarTextChanged)
             mViewModel.isFavoriteLiveData.observe(this, mFavoriteObserver)
-            mViewModel.ttsStateLiveData.observe(this, mTtsObserver)
         }
+        ResultListFactory.updateListHeaderButtonsVisibility(mBinding, mTab)
         return mBinding.root
 
     }
@@ -99,11 +98,6 @@ class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogLi
     }
 
     private val mFavoriteObserver = Observer<Boolean> { isFavorite -> mBinding.btnStarQuery.isChecked = isFavorite == true }
-
-    private val mTtsObserver = Observer<TtsState> { ttsState ->
-        Log.d(TAG, "$mTab: ttsState = $ttsState")
-        if (ttsState != null) ResultListFactory.updateListHeaderButtonsVisibility(mBinding, mTab, ttsState.currentStatus)
-    }
 
     inner class ButtonListener {
         fun onDeleteFavoritesButtonClicked(@Suppress("UNUSED_PARAMETER") v: View) {

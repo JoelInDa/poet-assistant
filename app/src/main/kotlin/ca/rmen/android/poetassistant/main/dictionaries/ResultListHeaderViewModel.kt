@@ -28,8 +28,6 @@ import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import ca.rmen.android.poetassistant.Favorites
 import ca.rmen.android.poetassistant.R
-import ca.rmen.android.poetassistant.Tts
-import ca.rmen.android.poetassistant.TtsState
 import ca.rmen.android.poetassistant.databinding.BindingCallbackAdapter
 import ca.rmen.android.poetassistant.databinding.LiveDataMapping
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
@@ -44,16 +42,12 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
 
     val snackbarText = MutableLiveData<String>()
     val isFavoriteLiveData: LiveData<Boolean>
-    val ttsStateLiveData: LiveData<TtsState>
 
     private val mFavorites: Favorites
-    private val mTts: Tts
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(application, NonAndroidEntryPoint::class.java)
         mFavorites = entryPoint.favorites()
-        mTts = entryPoint.tts()
-        ttsStateLiveData = mTts.getTtsLiveData()
         // Expose a LiveData to the fragment, so it can update the star icon when the favorite
         // value changes in the DB. This is relevant when the favorite value changes because the star
         // was clicked in *another* fragment. If we only had one screen where the user could change
@@ -70,8 +64,6 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
             }
         }))
     }
-
-    fun speak() = query.get()?.let { mTts.speak(it) }
 
     fun clearFilter() = filter.set(null)
 

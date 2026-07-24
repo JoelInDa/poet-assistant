@@ -18,7 +18,9 @@
   -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Poet Assistant</string>
+    <string name="app_name">jLyrics Assistant</string>
+    <!-- Shown under the launcher icon. The full name truncates on a 3.3" screen. -->
+    <string name="app_name_launcher">jLyrics</string>
 
     <string name="tab_pattern">Pattern</string>
     <string name="tab_favorites">Favorites</string>

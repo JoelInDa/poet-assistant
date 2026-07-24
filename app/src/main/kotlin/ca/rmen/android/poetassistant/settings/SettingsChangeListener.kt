@@ -28,7 +28,6 @@ import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.Theme
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.Dictionary
 import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter
-import ca.rmen.android.poetassistant.wotd.Wotd
 
 class SettingsChangeListener(
     private val context: Context,
@@ -45,10 +44,6 @@ class SettingsChangeListener(
             SettingsPrefs.PREF_THEME -> {
                 Theme.setThemeFromSettings(settingsPrefs)
                 restartSettingsActivity()
-            }
-
-            SettingsPrefs.PREF_WOTD_ENABLED, SettingsPrefs.PREF_WOTD_NOTIFICATION_PRIORITY -> {
-                Wotd.setWotdEnabled(context, dictionary, settingsPrefs.isWotdEnabled)
             }
 
             SettingsPrefs.PREF_SELECTION_LOOKUP -> {

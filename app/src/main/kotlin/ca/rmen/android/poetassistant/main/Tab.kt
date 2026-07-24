@@ -19,20 +19,18 @@
 
 package ca.rmen.android.poetassistant.main
 
+/**
+ * The pages of the view pager, in display order.
+ *
+ * RHYMER, THESAURUS and DICTIONARY are the three lookup modes you swipe between.
+ * FAVORITES is the saved-words list.
+ *
+ * The ordinal is used as the pager position, so the declaration order matters.
+ */
 enum class Tab {
-    RHYMER, THESAURUS, DICTIONARY, READER, FAVORITES, PATTERN, WOTD;
+    RHYMER, THESAURUS, DICTIONARY, FAVORITES;
 
     companion object {
-        fun parse(value: String) : Tab? {
-
-            if (FAVORITES.name.equals(value, true)) return FAVORITES
-            if (WOTD.name.equals(value, true)) return WOTD
-            if (PATTERN.name.equals(value, true)) return PATTERN
-            if (RHYMER.name.equals(value, true)) return RHYMER
-            if (THESAURUS.name.equals(value, true)) return THESAURUS
-            if (DICTIONARY.name.equals(value, true)) return DICTIONARY
-            if (READER.name.equals(value, true)) return READER
-            return null
-        }
+        fun parse(value: String): Tab? = entries.firstOrNull { it.name.equals(value, true) }
     }
 }

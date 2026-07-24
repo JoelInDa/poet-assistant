@@ -19,37 +19,17 @@
 
 package ca.rmen.android.poetassistant
 
-import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.migration.Migration
-import ca.rmen.android.poetassistant.main.dictionaries.search.Suggestion
-import ca.rmen.android.poetassistant.main.dictionaries.search.SuggestionDao
 
-// https://medium.com/google-developers/7-steps-to-room-27a5fe5f99b2
-@Database(entities = [Favorite::class, Suggestion::class], version = 2)
+/**
+ * Version 3 drops the SUGGESTION table along with the search-history feature.
+ *
+ * There is no migration from 1 or 2: this fork ships under a new applicationId, so every
+ * install is a fresh one and there is no older database on disk to upgrade. DbModule
+ * uses a destructive fallback to make that explicit rather than crashing on a stale file.
+ */
+@Database(entities = [Favorite::class], version = 3)
 abstract class UserDb : RoomDatabase() {
-
-    companion object {
-        @JvmField
-        val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("CREATE TABLE `FAVORITE_TEMP` AS SELECT * FROM `FAVORITE`")
-                database.execSQL("CREATE TABLE `SUGGESTION_TEMP` AS SELECT * FROM `SUGGESTION`")
-                database.execSQL("DROP TABLE `FAVORITE`")
-                database.execSQL("DROP TABLE `SUGGESTION`")
-                database.execSQL("CREATE TABLE `FAVORITE` (`WORD` TEXT NOT NULL, PRIMARY KEY(`WORD`))")
-                database.execSQL("CREATE TABLE `SUGGESTION` (`WORD` TEXT NOT NULL, PRIMARY KEY(`WORD`))")
-                database.execSQL("CREATE UNIQUE INDEX `index_FAVORITE_WORD` ON `FAVORITE` (`WORD`)")
-                database.execSQL("CREATE UNIQUE INDEX `index_SUGGESTION_WORD` ON `SUGGESTION` (`WORD`)")
-                database.execSQL("INSERT OR IGNORE INTO `FAVORITE` SELECT * FROM `FAVORITE_TEMP`")
-                database.execSQL("INSERT OR IGNORE INTO `SUGGESTION` SELECT * FROM `SUGGESTION_TEMP`")
-                database.execSQL("DROP TABLE `FAVORITE_TEMP`")
-                database.execSQL("DROP TABLE `SUGGESTION_TEMP`")
-            }
-        }
-    }
-
     abstract fun favoriteDao(): FavoriteDao
-    abstract fun suggestionDao(): SuggestionDao
 }

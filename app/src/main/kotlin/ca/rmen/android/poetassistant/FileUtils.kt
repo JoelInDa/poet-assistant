@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Carmen Alvarez
+ * Copyright (c) 2016 - present Carmen Alvarez
  *
  * This file is part of Poet Assistant.
  *
@@ -19,20 +19,24 @@
 
 package ca.rmen.android.poetassistant
 
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
+import android.net.Uri
+import android.provider.OpenableColumns
 
-object NotificationChannel {
-    fun createNotificationChannel(context: Context): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
-            if (notificationManager != null) {
-                val channel = android.app.NotificationChannel(context.getString(R.string.app_name), context.getString(R.string.app_name), NotificationManager.IMPORTANCE_LOW)
-                notificationManager.createNotificationChannel(channel)
-                return channel.id
+/**
+ * Extracted from the deleted reader/PoemFile: the favorites export/import in settings
+ * still needs to resolve a human-readable name for a content Uri.
+ */
+object FileUtils {
+    fun readDisplayName(context: Context, uri: Uri?): String? {
+        uri?.let { displayNameUri ->
+            context.contentResolver.query(displayNameUri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val column = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (column >= 0) return cursor.getString(column)
+                }
             }
         }
-        return ""
+        return null
     }
 }

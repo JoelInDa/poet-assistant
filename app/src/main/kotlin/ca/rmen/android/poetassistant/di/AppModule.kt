@@ -22,13 +22,11 @@ import android.app.Application
 import ca.rmen.android.poetassistant.Favorites
 import ca.rmen.android.poetassistant.Theme
 import ca.rmen.android.poetassistant.Threading
-import ca.rmen.android.poetassistant.Tts
 import ca.rmen.android.poetassistant.UserDb
 import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.Dictionary
 import ca.rmen.android.poetassistant.main.dictionaries.rt.Rhymer
 import ca.rmen.android.poetassistant.main.dictionaries.rt.Thesaurus
-import ca.rmen.android.poetassistant.main.dictionaries.search.Suggestions
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import dagger.Module
 import dagger.Provides
@@ -39,11 +37,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class AppModule {
-
-    @Provides
-    @Singleton
-    fun providesTts(application: Application, settingsPrefs: SettingsPrefs, threading: Threading): Tts =
-        Tts(application, settingsPrefs, threading)
 
     @Provides
     @Singleton
@@ -73,9 +66,5 @@ class AppModule {
     @Provides
     @Singleton
     fun providesFavorites(threading: Threading, userDb: UserDb) = Favorites(threading, userDb.favoriteDao())
-
-    @Provides
-    @Singleton
-    fun providesSuggestions(userDb: UserDb) = Suggestions(userDb.suggestionDao())
 
 }

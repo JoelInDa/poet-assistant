@@ -55,8 +55,6 @@ import ca.rmen.android.poetassistant.main.dictionaries.rt.OnWordClickListener
 import ca.rmen.android.poetassistant.main.dictionaries.rt.Rhymer
 import ca.rmen.android.poetassistant.main.dictionaries.rt.Thesaurus
 import ca.rmen.android.poetassistant.main.dictionaries.search.Search
-import ca.rmen.android.poetassistant.main.dictionaries.search.SuggestionsViewModel
-import ca.rmen.android.poetassistant.main.reader.ReaderFragment
 import ca.rmen.android.poetassistant.settings.SettingsActivity
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import ca.rmen.android.poetassistant.widget.CABEditText
@@ -113,8 +111,6 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         if (intent.data?.host != null) {
             val tab = Tab.parse(intent.data!!.host!!) ?: Tab.DICTIONARY
             mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(tab), false)
-        } else if (Intent.ACTION_SEND == intent.action) {
-            mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(Tab.READER), false)
         }
 
         mSearch = Search(this, mBinding.viewPager, dictionary = mDictionary, threading = mThreading)
@@ -140,15 +136,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
                 top = insets.top,
             )
         }
-        getInsets(mBinding.searchSuggestionsList) { view, insets ->
-            view.updatePadding(
-                left = insets.left,
-                right = insets.right,
-            )
-        }
-        val searchView = mBinding.searchView
-        val suggestionsViewModel = ViewModelProvider(this).get(SuggestionsViewModel::class.java)
-        mSearch.setSearchView(searchView, suggestionsViewModel)
+        mSearch.setSearchView(mBinding.searchView)
     }
 
     override fun onResume() {
@@ -194,14 +182,6 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             Intent.ACTION_VIEW -> {
                 handleDeepLink(intent.data)
             }
-        // Load some shared text into the reader tab
-            Intent.ACTION_SEND -> {
-                mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(Tab.READER), false)
-                val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
-                val readerFragment = mPagerAdapter.getFragment(mBinding.viewPager, Tab.READER) as ReaderFragment
-                readerFragment.setText(sharedText)
-
-            }
         }
     }
 
@@ -215,8 +195,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             if (!userQuery.isNullOrEmpty()) query = userQuery.toString()
         }
         if (TextUtils.isEmpty(query)) return
-        mSearch.addSuggestions(query!!)
-        mSearch.search(query)
+        mSearch.search(query!!)
     }
     private fun handleDeepLink(uri: Uri?) {
         Log.d(TAG, "handleDeepLink, uri=$uri")
@@ -251,19 +230,13 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
                 startActivity(Intent(this, SettingsActivity::class.java))
                 return true
             }
-            R.id.action_wotd_history -> {
-                mPagerAdapter.setExtraTab(Tab.WOTD)
-                mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(Tab.WOTD), false)
-                return true
-            }
         }
         return super.onOptionsItemSelected(item)
     }
 
     override fun onImeClosed() {
-        // In the reader fragment, when the user taps on the EditText, the soft keyboard is opened, and UI scrolls up, hiding the AppBarLayout.
-        // When the user taps back to close the soft keyboard, we should show the AppBarLayout again, or else the only way
-        // for the user to access the actionbar + tabs would be to swipe left or right to another fragment.
+        // When the user taps back to close the soft keyboard, show the AppBarLayout again, or else
+        // the only way to reach the search bar would be to swipe left or right to another fragment.
         AppBarLayoutHelper.forceExpandAppBarLayout(mBinding.appBarLayout)
     }
 
@@ -282,13 +255,10 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             super.onPageSelected(position)
             val tab = mPagerAdapter.getTabForPosition(position)
 
-            if (tab == Tab.READER) {
-                AppBarLayoutHelper.enableAutoHide(this@MainActivityImpl)
-            } else {
-                // Hide the keyboard when we navigate to any tab other than the reader tab.
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-                imm?.hideSoftInputFromWindow(mBinding.viewPager.windowToken, 0)
-            }
+            // Hide the keyboard whenever we swipe to another lookup mode.
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
+            imm?.hideSoftInputFromWindow(mBinding.viewPager.windowToken, 0)
+
             val fragment = mPagerAdapter.getFragment(mBinding.viewPager, tab)
             (fragment as? ResultListFragment<*>)?.enableAutoHideIfNeeded()
 

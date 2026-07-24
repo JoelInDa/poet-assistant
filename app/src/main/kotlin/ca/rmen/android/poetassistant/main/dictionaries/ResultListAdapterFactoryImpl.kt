@@ -24,15 +24,13 @@ import ca.rmen.android.poetassistant.main.Tab
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryListAdapter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.OnWordClickListener
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RTListAdapter
-import ca.rmen.android.poetassistant.wotd.WotdAdapter
 
 open class ResultListAdapterFactoryImpl : ResultListAdapterFactory {
 
     override fun createAdapter(activity: Activity, tab: Tab): ResultListAdapter<out Any> {
         return when (tab) {
-            Tab.PATTERN, Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> RTListAdapter(tab, activity)
-            Tab.WOTD -> WotdAdapter(activity)
-            else -> DictionaryListAdapter(activity as OnWordClickListener)
+            Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> RTListAdapter(tab, activity)
+            Tab.DICTIONARY -> DictionaryListAdapter(activity as OnWordClickListener)
         }
     }
 }

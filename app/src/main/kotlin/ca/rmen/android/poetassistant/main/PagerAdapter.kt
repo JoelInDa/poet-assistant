@@ -33,46 +33,33 @@ import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListFactory
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListFragment
-import ca.rmen.android.poetassistant.main.reader.ReaderFragment
 import java.util.Locale
 
 /**
  * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
  * one of the sections/tabs/pages.
+ *
+ * Every page is a ResultListFragment and every Tab is always present, so the pager
+ * position is simply the Tab ordinal. Upstream's "extra tab" machinery existed only to
+ * show/hide the optional pattern and word-of-the-day tabs, both of which are gone.
  */
-class PagerAdapter// Text shared from another app:// Deep link to query in a specific tab
-(context: Context, fm: FragmentManager, intent: Intent) : FragmentPagerAdapter(fm) {
+class PagerAdapter(context: Context, fm: FragmentManager, intent: Intent) : FragmentPagerAdapter(fm) {
     companion object {
         private val TAG = Constants.TAG + PagerAdapter::class.java.simpleName
-        private const val EXTRA_EXTRA_TAB = "extra_tab"
     }
 
     private val mContext: Context = context
-    private var mExtraTab: Tab? = null
-    private var mInitialPatternQuery: String? = null
     private var mInitialRhymeQuery: String? = null
     private var mInitialThesaurusQuery: String? = null
     private var mInitialDictionaryQuery: String? = null
-    private var mInitialPoemText: String? = null
-
-    fun setExtraTab(tab: Tab?) {
-        Log.v(TAG, "setExtraTab $tab")
-        if (mExtraTab != tab) {
-            mExtraTab = tab
-            notifyDataSetChanged()
-        }
-    }
 
     override fun getItem(position: Int): Fragment {
         Log.v(TAG, "getItem $position")
-        return when (getTabForPosition(position)) {
-            Tab.PATTERN -> ResultListFactory.createListFragment(Tab.PATTERN, mInitialPatternQuery)
-            Tab.FAVORITES -> ResultListFactory.createListFragment(Tab.FAVORITES, null)
-            Tab.WOTD -> ResultListFactory.createListFragment(Tab.WOTD, null)
-            Tab.RHYMER -> ResultListFactory.createListFragment(Tab.RHYMER, mInitialRhymeQuery)
-            Tab.THESAURUS -> ResultListFactory.createListFragment(Tab.THESAURUS, mInitialThesaurusQuery)
-            Tab.DICTIONARY -> ResultListFactory.createListFragment(Tab.DICTIONARY, mInitialDictionaryQuery)
-            else -> ReaderFragment.newInstance(mInitialPoemText)
+        return when (val tab = getTabForPosition(position)) {
+            Tab.RHYMER -> ResultListFactory.createListFragment(tab, mInitialRhymeQuery)
+            Tab.THESAURUS -> ResultListFactory.createListFragment(tab, mInitialThesaurusQuery)
+            Tab.DICTIONARY -> ResultListFactory.createListFragment(tab, mInitialDictionaryQuery)
+            Tab.FAVORITES -> ResultListFactory.createListFragment(tab, null)
         }
     }
 
@@ -85,13 +72,10 @@ class PagerAdapter// Text shared from another app:// Deep link to query in a spe
                 return getPositionForTab(tab)
             }
         }
-        if (obj is ReaderFragment) {
-            return getPositionForTab(Tab.READER)
-        }
         return androidx.viewpager.widget.PagerAdapter.POSITION_NONE
     }
 
-    override fun getCount(): Int = if (mExtraTab != null) 6 else 5
+    override fun getCount(): Int = Tab.entries.size
 
     override fun getPageTitle(position: Int): CharSequence {
         val tab = getTabForPosition(position)
@@ -101,29 +85,11 @@ class PagerAdapter// Text shared from another app:// Deep link to query in a spe
     @DrawableRes
     fun getIcon(position: Int): Int? {
         if (!mContext.resources.getBoolean(R.bool.tab_icons)) return null
-        val tab = getTabForPosition(position)
-        return when (tab) {
-            Tab.PATTERN -> R.drawable.ic_tab_pattern
-            Tab.FAVORITES -> R.drawable.ic_tab_star
-            Tab.WOTD -> R.drawable.ic_tab_wotd
+        return when (getTabForPosition(position)) {
             Tab.RHYMER -> R.drawable.ic_tab_rhymer
             Tab.THESAURUS -> R.drawable.ic_tab_thesaurus
             Tab.DICTIONARY -> R.drawable.ic_tab_dictionary
-            else -> R.drawable.ic_tab_reader
-        }
-    }
-
-    override fun saveState(): Parcelable? {
-        val bundle = Bundle(1)
-        if (mExtraTab != null) bundle.putSerializable(EXTRA_EXTRA_TAB, mExtraTab)
-        return bundle
-    }
-
-    override fun restoreState(state: Parcelable?, loader: ClassLoader?) {
-        val bundle = state as Bundle
-        if (bundle.containsKey(EXTRA_EXTRA_TAB)) {
-            mExtraTab = bundle.getSerializable(EXTRA_EXTRA_TAB) as Tab
-            notifyDataSetChanged()
+            Tab.FAVORITES -> R.drawable.ic_tab_star
         }
     }
 
@@ -136,21 +102,11 @@ class PagerAdapter// Text shared from another app:// Deep link to query in a spe
         return instantiateItem(viewGroup, position) as Fragment
     }
 
-    override fun getItemId(position: Int): Long {
-        return getTabForPosition(position).ordinal.toLong()
-    }
+    override fun getItemId(position: Int): Long = getTabForPosition(position).ordinal.toLong()
 
-    fun getTabForPosition(position: Int): Tab {
-        if (mExtraTab != null && position == count - 1) return mExtraTab!!
-        return Tab.values()[position]
-    }
+    fun getTabForPosition(position: Int): Tab = Tab.entries[position]
 
-    fun getPositionForTab(tab: Tab): Int {
-        if (tab == Tab.PATTERN || tab == Tab.WOTD) {
-            return if (mExtraTab == tab) count - 1 else POSITION_NONE
-        }
-        return tab.ordinal
-    }
+    fun getPositionForTab(tab: Tab): Int = tab.ordinal
 
     init {
         Log.v(TAG, "Constructor: intent = $intent")
@@ -158,7 +114,6 @@ class PagerAdapter// Text shared from another app:// Deep link to query in a spe
         if (initialQuery?.host != null) {
             val tab = Tab.parse(initialQuery.host!!)
             when {
-                tab == Tab.PATTERN -> mInitialPatternQuery = initialQuery.lastPathSegment
                 tab == Tab.RHYMER -> mInitialRhymeQuery = initialQuery.lastPathSegment
                 tab == Tab.THESAURUS -> mInitialThesaurusQuery = initialQuery.lastPathSegment
                 tab == Tab.DICTIONARY -> mInitialDictionaryQuery = initialQuery.lastPathSegment
@@ -168,10 +123,6 @@ class PagerAdapter// Text shared from another app:// Deep link to query in a spe
                     mInitialDictionaryQuery = initialQuery.lastPathSegment
                 }
             }
-        }
-        // Text shared from another app:
-        else if (Intent.ACTION_SEND == intent.action) {
-            mInitialPoemText = intent.getStringExtra(Intent.EXTRA_TEXT)
         }
     }
 }

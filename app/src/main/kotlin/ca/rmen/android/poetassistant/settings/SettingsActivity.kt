@@ -46,8 +46,6 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
-import ca.rmen.android.poetassistant.Tts
-import ca.rmen.android.poetassistant.TtsState
 import ca.rmen.android.poetassistant.databinding.ActivitySettingsBinding
 import ca.rmen.android.poetassistant.getInsets
 import ca.rmen.android.poetassistant.fixStatusBarViewForInsets
@@ -102,32 +100,12 @@ open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat(), ConfirmDi
         private const val PREF_CLEAR_SEARCH_HISTORY = "PREF_CLEAR_SEARCH_HISTORY"
     }
 
-    @Inject
-    lateinit var mTts: Tts
-
-    private var mRestartTtsOnResume = false
     @Inject lateinit var mPrefs: SettingsPrefs
     private lateinit var mViewModel: SettingsViewModel
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            mPrefs.isWotdEnabled = isGranted
-            if (!isGranted) {
-                if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                    val settingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    settingsIntent.data = Uri.fromParts("package", requireContext().packageName, null)
-                    startActivity(settingsIntent)
-                }
-            }
-            findPreference<SwitchPreferenceCompat>(SettingsPrefs.PREF_WOTD_ENABLED)?.isChecked = isGranted
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context?.let {
-            mTts.getTtsLiveData().observe(this, mTtsObserver)
             mViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
             mViewModel.snackbarText.observe(this, mSnackbarCallback)
         }
@@ -140,87 +118,9 @@ open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat(), ConfirmDi
     private fun loadPreferences() {
         context?.let {
             addPreferencesFromResource(R.xml.pref_general)
-            setOnPreferenceClickListener(PREF_CLEAR_SEARCH_HISTORY, Runnable {
-                ConfirmDialogFragment.show(
-                    ACTION_CLEAR_SEARCH_HISTORY,
-                    getString(R.string.confirm_clear_search_history),
-                    getString(R.string.action_clear),
-                    childFragmentManager,
-                    DIALOG_TAG)
-
-            })
-            setOnPreferenceClickListener(SettingsPrefs.PREF_VOICE_PREVIEW, Runnable { mViewModel.playTtsPreview() })
-
-            // Hide the system tts settings if no system app can handle it
-            val systemTtsSettings = findPreference<Preference>(SettingsPrefs.PREF_SYSTEM_TTS_SETTINGS)!!
-            val intent = systemTtsSettings.intent
-            if (intent?.resolveActivity(it.packageManager) == null) {
-                removePreference(PREF_CATEGORY_VOICE, systemTtsSettings)
-            } else {
-                setOnPreferenceClickListener(systemTtsSettings, Runnable { mRestartTtsOnResume = true })
-            }
-
-            // Android O users can change the priority in the system settings.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                removePreferences(PREF_CATEGORY_NOTIFICATIONS, SettingsPrefs.PREF_WOTD_NOTIFICATION_PRIORITY)
-            }
-
-            findPreference<SwitchPreferenceCompat>(SettingsPrefs.PREF_WOTD_ENABLED)?.setOnPreferenceClickListener { preference ->
-                val wotdPref = preference as SwitchPreferenceCompat
-                if (wotdPref.isChecked) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        when {
-                            ContextCompat.checkSelfPermission(
-                                requireContext(),
-                                Manifest.permission.POST_NOTIFICATIONS
-                            ) == PackageManager.PERMISSION_GRANTED -> {
-                                mPrefs.isWotdEnabled = true
-                            }
-                            else -> {
-                                preference.isChecked = false
-                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                        }
-                    } else {
-                        mPrefs.isWotdEnabled = true
-                    }
-                } else {
-                    mPrefs.isWotdEnabled = false
-                }
-
-                true
-            }
-
             setOnPreferenceClickListener(PREF_EXPORT_FAVORITES, Runnable { startActivityForResult(mViewModel.getExportFavoritesIntent(), ACTION_EXPORT_FAVORITES) })
             setOnPreferenceClickListener(PREF_IMPORT_FAVORITES, Runnable { startActivityForResult(mViewModel.getImportFavoritesIntent(), ACTION_IMPORT_FAVORITES) })
         }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // Hide the voice preference if we can't load any voices
-        val voicePreference = findPreference<Preference>(SettingsPrefs.PREF_VOICE) as VoicePreference
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            viewLifecycleOwner.lifecycleScope.launch {
-                voicePreference.loadVoices()
-                if (voicePreference.entries == null || voicePreference.entries.size < 2) {
-                    removePreference(PREF_CATEGORY_VOICE, voicePreference)
-                }
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (mRestartTtsOnResume) {
-            mTts.restart()
-            mRestartTtsOnResume = false
-        }
-    }
-
-    override fun onPause() {
-        mTts.stop()
-        super.onPause()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -234,24 +134,8 @@ open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat(), ConfirmDi
         }
     }
 
-    override fun onOk(actionId: Int) {
-        if (actionId == ACTION_CLEAR_SEARCH_HISTORY) {
-            mViewModel.clearSearchHistory()
-        }
-    }
+    override fun onOk(actionId: Int) = Unit
 
-    override fun onDisplayPreferenceDialog(preference: Preference) {
-        if (SettingsPrefs.PREF_VOICE == preference.key) {
-            if (parentFragmentManager.findFragmentByTag(DIALOG_TAG) != null) {
-                return
-            }
-            val fragment = VoicePreferenceDialogFragment.newInstance(preference.key)
-            fragment.setTargetFragment(this, 0)
-            fragment.show(parentFragmentManager, DIALOG_TAG)
-        } else {
-            super.onDisplayPreferenceDialog(preference)
-        }
-    }
 
     private fun removePreferences(categoryKey: String, vararg preferenceKeys: String) {
         preferenceKeys.forEach { removePreference(categoryKey, findPreference(it)!!) }
@@ -281,14 +165,5 @@ open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat(), ConfirmDi
         }
     }
 
-    private val mTtsObserver = Observer<TtsState?> { ttsState ->
-        Log.v(TAG, "ttsState = $ttsState")
-        if (ttsState != null
-            && ttsState.previousStatus == TtsState.TtsStatus.UNINITIALIZED
-            && ttsState.currentStatus == TtsState.TtsStatus.INITIALIZED) {
-            preferenceScreen.removeAll()
-            loadPreferences()
-        }
-    }
 }
 

@@ -31,7 +31,6 @@ import android.view.View
 import androidx.annotation.IdRes
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
-import ca.rmen.android.poetassistant.TtsState
 import ca.rmen.android.poetassistant.databinding.ResultListHeaderBinding
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import ca.rmen.android.poetassistant.main.Tab
@@ -40,16 +39,11 @@ import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryList
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryLiveData
 import ca.rmen.android.poetassistant.main.dictionaries.rt.FavoritesListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.FavoritesLiveData
-import ca.rmen.android.poetassistant.main.dictionaries.rt.PatternListExporter
-import ca.rmen.android.poetassistant.main.dictionaries.rt.PatternLiveData
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RTEntryViewModel
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RhymerListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RhymerLiveData
 import ca.rmen.android.poetassistant.main.dictionaries.rt.ThesaurusListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.ThesaurusLiveData
-import ca.rmen.android.poetassistant.wotd.WotdEntryViewModel
-import ca.rmen.android.poetassistant.wotd.WotdListExporter
-import ca.rmen.android.poetassistant.wotd.WotdLiveData
 import dagger.hilt.android.EntryPointAccessors
 
 object ResultListFactory {
@@ -58,9 +52,8 @@ object ResultListFactory {
     fun createListFragment(tab: Tab, initialQuery: String?): ResultListFragment<Any> {
         Log.d(TAG, "createListFragment: tab=$tab, initialQuery = $initialQuery")
         val fragment = when (tab) {
-            Tab.PATTERN, Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> ResultListFragment<RTEntryViewModel>()
-            Tab.WOTD -> ResultListFragment<WotdEntryViewModel>()
-            else -> ResultListFragment<DictionaryEntry.DictionaryEntryDetails>()
+            Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> ResultListFragment<RTEntryViewModel>()
+            Tab.DICTIONARY -> ResultListFragment<DictionaryEntry.DictionaryEntryDetails>()
         }
         val bundle = Bundle(2)
         bundle.putSerializable(ResultListFragment.EXTRA_TAB, tab)
@@ -90,9 +83,8 @@ object ResultListFactory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 @Suppress("UNCHECKED_CAST")
                 return when (tab) {
-                    Tab.PATTERN, Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> ResultListViewModel<RTEntryViewModel>(application, tab)
-                    Tab.WOTD -> ResultListViewModel<WotdEntryViewModel>(application, tab)
-                    else -> ResultListViewModel<DictionaryEntry.DictionaryEntryDetails>(application, tab)
+                    Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> ResultListViewModel<RTEntryViewModel>(application, tab)
+                    Tab.DICTIONARY -> ResultListViewModel<DictionaryEntry.DictionaryEntryDetails>(application, tab)
                 } as (T)
             }
         }
@@ -100,23 +92,19 @@ object ResultListFactory {
 
     fun createLiveData(tab: Tab, context: Context, query: String?, filter: String?): ResultListLiveData<out ResultListData<Any>> {
         return when (tab) {
-            Tab.PATTERN -> PatternLiveData(context, query!!)
             Tab.FAVORITES -> FavoritesLiveData(context)
-            Tab.WOTD -> WotdLiveData(context)
             Tab.RHYMER -> RhymerLiveData(context, query!!, filter)
             Tab.THESAURUS -> ThesaurusLiveData(context, query!!, filter)
-            else -> DictionaryLiveData(context, query!!)
+            Tab.DICTIONARY -> DictionaryLiveData(context, query!!)
         }
     }
 
     fun createExporter(context: Context, tab: Tab): ResultListExporter<*> {
         return when (tab) {
-            Tab.PATTERN -> PatternListExporter(context)
             Tab.FAVORITES -> FavoritesListExporter(context)
-            Tab.WOTD -> WotdListExporter(context)
             Tab.RHYMER -> RhymerListExporter(context)
             Tab.THESAURUS -> ThesaurusListExporter(context)
-            else -> DictionaryListExporter(context)
+            Tab.DICTIONARY -> DictionaryListExporter(context)
         }
     }
 
@@ -138,52 +126,29 @@ object ResultListFactory {
     fun getEmptyListText(context: Context, tab: Tab, query: String): String {
         return when (tab) {
             Tab.FAVORITES -> context.getString(R.string.empty_favorites_list)
-            Tab.PATTERN -> context.getString(R.string.empty_pattern_list_with_query, query)
             Tab.RHYMER -> context.getString(R.string.empty_rhymer_list_with_query, query)
             Tab.THESAURUS -> context.getString(R.string.empty_thesaurus_list_with_query, query)
-            else -> context.getString(R.string.empty_dictionary_list_with_query, query)
+            Tab.DICTIONARY -> context.getString(R.string.empty_dictionary_list_with_query, query)
         }
     }
 
-    fun isLoadWithoutQuerySupported(tab: Tab): Boolean {
-        return when (tab) {
-            Tab.FAVORITES, Tab.WOTD -> true
-            else -> false
-        }
-    }
+    fun isLoadWithoutQuerySupported(tab: Tab): Boolean = tab == Tab.FAVORITES
 
     /**
-     * Set the various buttons which appear in the result list header (ex: tts play,
-     * web search, filter, help) to visible or gone, depending on the tab.
+     * Set the various buttons which appear in the result list header (ex: web search,
+     * filter, help) to visible or gone, depending on the tab.
      */
-    fun updateListHeaderButtonsVisibility(binding: ResultListHeaderBinding, tab: Tab, ttsStatus: TtsState.TtsStatus) {
+    fun updateListHeaderButtonsVisibility(binding: ResultListHeaderBinding, tab: Tab) {
         when (tab) {
             Tab.FAVORITES -> {
-                binding.btnPlay.visibility = View.GONE
                 binding.btnWebSearch.visibility = View.GONE
                 binding.btnStarQuery.visibility = View.GONE
                 binding.btnDelete.visibility = View.VISIBLE
             }
-            Tab.WOTD -> {
-                binding.btnPlay.visibility = View.GONE
-                binding.btnWebSearch.visibility = View.GONE
-                binding.btnStarQuery.visibility = View.GONE
-                binding.btnDelete.visibility = View.GONE
-            }
-            Tab.PATTERN -> {
-                binding.btnHelp.visibility = View.VISIBLE
-                binding.btnPlay.visibility = View.GONE
-                binding.btnWebSearch.visibility = View.GONE
-                binding.btnStarQuery.visibility = View.GONE
-            }
             Tab.RHYMER, Tab.THESAURUS -> {
                 binding.btnFilter.visibility = View.VISIBLE
             }
-            Tab.DICTIONARY -> {
-                val playButtonVisibility = if (ttsStatus == TtsState.TtsStatus.UNINITIALIZED) View.GONE else View.VISIBLE
-                binding.btnPlay.visibility = playButtonVisibility
-            }
-            Tab.READER -> Unit
+            Tab.DICTIONARY -> Unit
         }
     }
 
@@ -204,23 +169,18 @@ object ResultListFactory {
 
     fun getTabName(context: Context, tab: Tab): String {
         return when (tab) {
-            Tab.PATTERN -> context.getString(R.string.tab_pattern)
             Tab.FAVORITES -> context.getString(R.string.tab_favorites)
-            Tab.WOTD -> context.getString(R.string.tab_wotd)
             Tab.RHYMER -> context.getString(R.string.tab_rhymer)
             Tab.THESAURUS -> context.getString(R.string.tab_thesaurus)
             Tab.DICTIONARY -> context.getString(R.string.tab_dictionary)
-            else -> context.getString(R.string.tab_reader)
         }
     }
+
     @IdRes
     fun getRecyclerViewId(tab: Tab): Int = when (tab) {
-        Tab.PATTERN -> R.id.pattern_recycler_view
         Tab.FAVORITES -> R.id.favorites_recycler_view
-        Tab.WOTD -> R.id.wotd_recycler_view
         Tab.RHYMER -> R.id.rhymer_recycler_view
         Tab.THESAURUS -> R.id.thesaurus_recycler_view
         Tab.DICTIONARY -> R.id.dictionary_recycler_view
-        else -> R.id.recycler_view
     }
 }
