@@ -26,7 +26,7 @@ import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 
 class RTEntryViewModel(context: Context, val type: Type, val text: String,
-                       isFavoriteInitialValue: Boolean, val hasDefinition: Boolean, val showButtons: Boolean) {
+                       isFavoriteInitialValue: Boolean, val hasDefinition: Boolean) {
     enum class Type {
         HEADING,
         SUBHEADING,
@@ -35,11 +35,13 @@ class RTEntryViewModel(context: Context, val type: Type, val text: String,
 
     val isFavorite = ObservableBoolean()
 
+    // Headings/subheadings: no favorite state, no definition.
     constructor(context: Context, type: Type, text: String) :
-            this(context, type, text,  false, false)
+            this(context, type, text, false, false)
 
-    constructor(context: Context, type: Type, text: String, isFavoriteInitialValue: Boolean, showButtons: Boolean) :
-            this(context, type, text, isFavoriteInitialValue, true, showButtons)
+    // Words where we only know the favorite state (thesaurus/favorites): assume a definition exists.
+    constructor(context: Context, type: Type, text: String, isFavoriteInitialValue: Boolean) :
+            this(context, type, text, isFavoriteInitialValue, true)
 
     init {
         val favorites = EntryPointAccessors.fromApplication(context, NonAndroidEntryPoint::class.java).favorites()
@@ -64,7 +66,6 @@ class RTEntryViewModel(context: Context, val type: Type, val text: String,
         if (type != other.type) return false
         if (text != other.text) return false
         if (hasDefinition != other.hasDefinition) return false
-        if (showButtons != other.showButtons) return false
         if (isFavorite != other.isFavorite) return false
 
         return true
@@ -74,7 +75,6 @@ class RTEntryViewModel(context: Context, val type: Type, val text: String,
         var result = type.hashCode()
         result = 31 * result + text.hashCode()
         result = 31 * result + hasDefinition.hashCode()
-        result = 31 * result + showButtons.hashCode()
         result = 31 * result + isFavorite.hashCode()
         return result
     }

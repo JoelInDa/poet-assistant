@@ -47,14 +47,12 @@ class ResultListViewModel<T: Any> constructor(
     val settingsPrefs: SettingsPrefs
     val isDataAvailable = ObservableBoolean()
     val emptyText = MutableLiveData<EmptyText>()
-    val layout = MutableLiveData<ca.rmen.android.poetassistant.settings.SettingsPrefs.Layout>()
     val showHeader = MutableLiveData<Boolean>()
     val usedQueryWord = MutableLiveData<String>()
     private var mAdapter: ResultListAdapter<T>? = null
 
     data class QueryParams(val word: String?)
 
-    private val mPrefsListener : PrefsListener
     private val mQueryParams = MutableLiveData<QueryParams>()
     val resultListDataLiveData: LiveData<ResultListData<T>>
     val favoritesLiveData: LiveData<List<Favorite>>
@@ -63,8 +61,6 @@ class ResultListViewModel<T: Any> constructor(
         val entryPoint = EntryPointAccessors.fromApplication(application, NonAndroidEntryPoint::class.java)
         settingsPrefs = entryPoint.prefs()
         emptyText.value = EmptyTextNoQuery
-        mPrefsListener = PrefsListener()
-        PreferenceManager.getDefaultSharedPreferences(application).registerOnSharedPreferenceChangeListener(mPrefsListener)
         favoritesLiveData = entryPoint.favorites().getFavoritesLiveData()
         resultListDataLiveData = mQueryParams.switchMap { queryParams ->
             @Suppress("UNCHECKED_CAST")
@@ -111,17 +107,4 @@ class ResultListViewModel<T: Any> constructor(
         isDataAvailable.notifyChange()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        PreferenceManager.getDefaultSharedPreferences(getApplication()).unregisterOnSharedPreferenceChangeListener(mPrefsListener)
-    }
-
-    private inner class PrefsListener : SharedPreferences.OnSharedPreferenceChangeListener {
-        override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-            if (SettingsPrefs.PREF_LAYOUT == key) {
-                layout.value = SettingsPrefs.getLayout(settingsPrefs)
-            }
-        }
-
-    }
 }

@@ -59,7 +59,6 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
         val rhymeResults = mRhymer.getRhymingWords(query, Constants.MAX_RESULTS)
                 ?: return emptyResult()
 
-        val layout = SettingsPrefs.getLayout(mPrefs)
         // The favorite set is still used to flag matching words (their pills get the gold
         // border), but favorites are no longer duplicated into their own section here: they
         // live only on the dedicated favorites tab.
@@ -70,10 +69,10 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
                 val heading = query + " (" + (it.variantNumber + 1) + ")"
                 data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, heading))
             }
-            addResultSection(favorites, data, R.string.rhyme_section_stress_syllables, it.strictRhymes, layout)
-            addResultSection(favorites, data, R.string.rhyme_section_three_syllables, it.threeSyllableRhymes, layout)
-            addResultSection(favorites, data, R.string.rhyme_section_two_syllables, it.twoSyllableRhymes, layout)
-            addResultSection(favorites, data, R.string.rhyme_section_one_syllable, it.oneSyllableRhymes, layout)
+            addResultSection(favorites, data, R.string.rhyme_section_stress_syllables, it.strictRhymes)
+            addResultSection(favorites, data, R.string.rhyme_section_three_syllables, it.threeSyllableRhymes)
+            addResultSection(favorites, data, R.string.rhyme_section_two_syllables, it.twoSyllableRhymes)
+            addResultSection(favorites, data, R.string.rhyme_section_one_syllable, it.oneSyllableRhymes)
         }
         val result = ResultListData(query, data)
         val after = System.currentTimeMillis()
@@ -85,7 +84,7 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
         return ResultListData(query, emptyList())
     }
 
-    private fun addResultSection(favorites: Set<String>, results: MutableList<RTEntryViewModel>, sectionHeadingResId: Int, rhymes: Array<String>, layout: ca.rmen.android.poetassistant.settings.SettingsPrefs.Layout) {
+    private fun addResultSection(favorites: Set<String>, results: MutableList<RTEntryViewModel>, sectionHeadingResId: Int, rhymes: Array<String>) {
         if (rhymes.isNotEmpty()) {
             val wordsWithDefinitions = if (mPrefs.isAllRhymesEnabled) mRhymer.getWordsWithDefinitions(rhymes) else null
             results.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING, context.getString(sectionHeadingResId)))
@@ -96,8 +95,7 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
                         RTEntryViewModel.Type.WORD,
                         rhyme,
                         favorites.contains(rhyme),
-                        hasDefinition,
-                        layout == SettingsPrefs.Layout.EFFICIENT))
+                        hasDefinition))
             }
             if (results.size >= Constants.MAX_RESULTS) {
                 results.add(RTEntryViewModel(

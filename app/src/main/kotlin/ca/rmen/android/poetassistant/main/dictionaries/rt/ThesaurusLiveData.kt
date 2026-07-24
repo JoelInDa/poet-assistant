@@ -54,16 +54,17 @@ class ThesaurusLiveData constructor(context: Context, private val query: String)
 
         val data = ArrayList<RTEntryViewModel>()
         if (TextUtils.isEmpty(query)) return emptyResult()
-        val result = mThesaurus.lookup(query, mPrefs.isThesaurusReverseLookupEnabled)
+        // Reverse lookup is always on now (it used to be a setting): also surface words that list
+        // this word as one of their synonyms, not just the synonyms in this word's own entry.
+        val result = mThesaurus.lookup(query, true)
         val entries = result.entries
         if (entries.isEmpty()) return emptyResult()
 
-        val layout = SettingsPrefs.getLayout(mPrefs)
         val favorites = mFavorites.getFavorites()
         entries.forEach {
             data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, it.wordType.name.lowercase(Locale.US)))
-            addResultSection(favorites, data, R.string.thesaurus_section_synonyms, it.synonyms, layout)
-            addResultSection(favorites, data, R.string.thesaurus_section_antonyms, it.antonyms, layout)
+            addResultSection(favorites, data, R.string.thesaurus_section_synonyms, it.synonyms)
+            addResultSection(favorites, data, R.string.thesaurus_section_antonyms, it.antonyms)
         }
         return ResultListData(result.word, data)
     }
@@ -72,7 +73,7 @@ class ThesaurusLiveData constructor(context: Context, private val query: String)
         return ResultListData(query, emptyList())
     }
 
-    private fun addResultSection(favorites: Set<String>, results: MutableList<RTEntryViewModel>, @StringRes sectionHeadingResId: Int, words: List<String>, layout: ca.rmen.android.poetassistant.settings.SettingsPrefs.Layout) {
+    private fun addResultSection(favorites: Set<String>, results: MutableList<RTEntryViewModel>, @StringRes sectionHeadingResId: Int, words: List<String>) {
         if (words.isNotEmpty()) {
             results.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING, context.getString(sectionHeadingResId)))
             words.forEach { word ->
@@ -80,8 +81,7 @@ class ThesaurusLiveData constructor(context: Context, private val query: String)
                         context,
                         RTEntryViewModel.Type.WORD,
                         word,
-                        favorites.contains(word),
-                        layout == SettingsPrefs.Layout.EFFICIENT
+                        favorites.contains(word)
                 ))
             }
         }

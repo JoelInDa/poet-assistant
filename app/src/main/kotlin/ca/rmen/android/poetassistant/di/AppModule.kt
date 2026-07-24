@@ -57,7 +57,6 @@ class AppModule {
     @Provides
     @Singleton
     fun providesSettingsPrefs(application: Application): SettingsPrefs {
-        SettingsPrefs.migrateSettings(application)
         val settingsPrefs = SettingsPrefs(application)
         Theme.setThemeFromSettings(settingsPrefs)
         return settingsPrefs

@@ -99,7 +99,6 @@ class ResultListFragment<out T: Any> : Fragment() {
             @Suppress("UNCHECKED_CAST")
             mViewModel = ResultListFactory.createViewModel(it, this) as ResultListViewModel<T>
             mBinding.viewModel = mViewModel
-            mViewModel.layout.observe(this, mLayoutSettingChanged)
             mViewModel.showHeader.observe(this, mShowHeaderChanged)
             mViewModel.usedQueryWord.observe(this, mUsedQueryWordChanged)
             mViewModel.emptyText.observe(this, mEmptyTextObserver)
@@ -225,8 +224,6 @@ class ResultListFragment<out T: Any> : Fragment() {
     })
 
     private val mShowHeaderChanged = Observer<Boolean> { showHeader -> mHeaderViewModel.showHeader.set(showHeader == true) }
-
-    private val mLayoutSettingChanged = Observer<SettingsPrefs.Layout> { reload() }
 
     // When favorites change:
     //  - On the Favorites tab, the whole list *is* the favorites, so it must reload to add/remove

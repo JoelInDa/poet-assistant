@@ -52,15 +52,12 @@ class FavoritesLiveData(context: Context) : ResultListLiveData<ResultListData<RT
         if (favorites.isEmpty()) return emptyResult()
 
         val sortedFavorites = TreeSet<String>(favorites)
-        val layout = SettingsPrefs.getLayout(mPrefs)
         sortedFavorites.forEach { favorite ->
-            /*@ColorRes*/
             data.add(RTEntryViewModel(
                     context,
                     RTEntryViewModel.Type.WORD,
                     favorite,
-                    true,
-                    layout == SettingsPrefs.Layout.EFFICIENT
+                    true
             ))
         }
         return ResultListData(context.getString(R.string.favorites_list_header), data)
