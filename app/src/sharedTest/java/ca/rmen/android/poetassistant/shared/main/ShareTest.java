@@ -81,20 +81,7 @@ public class ShareTest {
         checkShareIntentContains("the blood group whose red cells carry the A antigen");
     }
 
-    @Test
-    public void sharePatternTest() {
-        search("ho?t");
-        openMenuItem(R.string.share);
-        checkShareIntentContains("host");
-    }
 
-    @Test
-    public void shareWotdTest() {
-        Context context = mActivityTestRule.getActivity();
-        openMenuItem(R.string.action_wotd_history);
-        openMenuItem(R.string.share);
-        checkShareIntentContains(context.getString(R.string.share_wotd_title));
-    }
 
     @Test
     public void sharePopupTest() {

@@ -37,7 +37,6 @@ import androidx.test.espresso.idling.CountingIdlingResource;
 import ca.rmen.android.poetassistant.InstrumentationThreading;
 import ca.rmen.android.poetassistant.Theme;
 import ca.rmen.android.poetassistant.Threading;
-import ca.rmen.android.poetassistant.Tts;
 import ca.rmen.android.poetassistant.UserDb;
 import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb;
 import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter;
@@ -60,13 +59,10 @@ public final class ActivityTestRules {
     @InstallIn(SingletonComponent.class)
     public interface ActivityTestRulesEntryPoint {
         Threading threading();
-        Tts tts();
         UserDb userDb();
         EmbeddedDb embeddedDb();
     }
     public static void beforeActivityLaunched(Context targetContext) {
-        IdlingRegistry.getInstance().register(new TtsIdlingResource(targetContext));
-
         InstrumentationThreading threading = (InstrumentationThreading) EntryPointAccessors.fromApplication(targetContext.getApplicationContext(), ActivityTestRulesEntryPoint.class).threading();
         CountingIdlingResource threadingCountingIdlingResource = threading.getCountingIdlingResource();
         if(threadingCountingIdlingResource != null) {
@@ -82,8 +78,6 @@ public final class ActivityTestRules {
         for (IdlingResource idlingResource : idlingResourceList) {
             IdlingRegistry.getInstance().unregister(idlingResource);
         }
-        Tts tts =  EntryPointAccessors.fromApplication(targetContext.getApplicationContext(), ActivityTestRulesEntryPoint.class).tts();
-        getInstrumentation().runOnMainSync(tts::shutdown);
     }
 
     private static void cleanup(Context targetContext) {

@@ -47,7 +47,7 @@ public class TestFavorites {
         UserDb db =  Room.databaseBuilder(Environment.getApplication(),
                 UserDb.class, "userdata.db")
                 .allowMainThreadQueries()
-                .addMigrations(UserDb.MIGRATION_1_2).build();
+                .build();
         Threading threading = new JunitThreading();
         Favorites favorites = new Favorites(threading, db.favoriteDao());
         Set<String> favoriteWords = favorites.getFavorites();

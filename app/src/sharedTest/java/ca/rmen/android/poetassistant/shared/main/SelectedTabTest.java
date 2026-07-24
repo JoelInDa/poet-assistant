@@ -69,15 +69,7 @@ public class SelectedTabTest {
         testSaveTab(() -> swipeViewPagerLeft(1), R.string.tab_thesaurus, R.string.tab_thesaurus);
     }
 
-    @Test
-    public void openAfterLastWotd() {
-        testSaveTab(() -> openMenuItem(R.string.action_wotd_history), R.string.tab_wotd, R.string.tab_rhymer);
-    }
 
-    @Test
-    public void openAfterLastPattern() {
-        testSaveTab(() -> search("h*llo"), R.string.tab_pattern, R.string.tab_rhymer);
-    }
 
     private void testSaveTab(Runnable openTabAction, @StringRes int expectedTabBeforeStop, @StringRes int expectedTabAfterRestart) {
         Intent intent = new Intent();

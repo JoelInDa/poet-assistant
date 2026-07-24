@@ -34,7 +34,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.addFilter;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.search;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.typeAndSpeakPoem;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.openMenuItem;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.swipeViewPagerLeft;
 
@@ -66,18 +65,6 @@ public class ShareTest {
     @Rule(order = 1)
     public PoetAssistantIntentsTestRule<MainActivity> mActivityTestRule = new PoetAssistantIntentsTestRule<>(MainActivity.class);
 
-    @Test
-    public void sharePoemTest() {
-        swipeViewPagerLeft(3);
-        String poemText = "Let us share a poem";
-        typeAndSpeakPoem(poemText);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            openMenuItem(R.string.share_poem_text);
-        } else {
-            openMenuItem(R.string.share);
-        }
-        checkShareIntentEquals(poemText);
-    }
 
     @Test
     public void shareThesaurusTest() {

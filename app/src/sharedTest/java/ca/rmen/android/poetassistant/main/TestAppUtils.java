@@ -71,18 +71,6 @@ public class TestAppUtils {
         // prevent instantiation
     }
 
-    public static void clearSearchHistory() {
-        // click on the settings menu item
-        openMenuItem(R.string.action_settings);
-
-        clickPreference(R.string.action_clear_search_history);
-
-        // Tap ok on the confirmation dialog
-        clickDialogPositiveButton(R.string.action_clear);
-
-        // Exit settings
-        pressBack();
-    }
 
     public static void openSearchView() {
         // Tap on the search icon in the action bar
@@ -220,43 +208,9 @@ public class TestAppUtils {
         onView(allOf(withId(android.R.id.button1), withText(labelRes))).perform(scrollTo(), click());
     }
 
-    public static void typeAndSpeakPoem(String poem) {
-        typePoem(poem);
-        speakPoem();
-        pressBack();
-        getInstrumentation().waitForIdleSync();
-    }
 
-    public static void typePoem(String poem) {
-        // The fab should be disabled until there is text
-        ViewInteraction fab = onView(allOf(
-                withId(R.id.btn_play),
-                withClassName(is(MaterialButton.class.getName()))
-        ));
-        fab.check(matches(not(isEnabled())));
-        ViewInteraction appCompatEditText = onView(
-                allOf(withId(R.id.tv_text), isDisplayed()));
-        appCompatEditText.check(matches(withText("")));
-        appCompatEditText.perform(typeText(poem));
-        appCompatEditText.check(matches(withText(equalToIgnoringCase(poem))));
-        fab.check(matches(isEnabled()));
-    }
 
-    static void speakPoem() {
-        ViewInteraction fab = onView(allOf(withClassName(is(MaterialButton.class.getName())), isEnabled()));
-        fab.perform(click());
-    }
 
-    public static void clearPoem() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            openMenuItem(R.string.file);
-            onView(allOf(withId(R.id.title), withText(R.string.file_new), isDisplayed())).perform(click());
-        } else {
-            openMenuItem(R.string.file_clear);
-        }
-        clickDialogPositiveButton(R.string.action_clear);
-        onView(allOf(withId(R.id.tv_text), isDisplayed())).check(matches(withText("")));
-    }
 
     public static void onNewIntent(MainActivity activity, Intent intent) {
         activity.onNewIntent(intent);

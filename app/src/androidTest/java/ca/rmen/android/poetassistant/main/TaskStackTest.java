@@ -93,7 +93,6 @@ public class TaskStackTest {
         Intent intent = new Intent();
         mActivityTestRule.launchActivity(intent);
         clickPreference(R.string.pref_theme_title);
-        onView(withText(R.string.pref_theme_value_auto)).check(matches(isChecked()));
         onView(withText(R.string.pref_theme_value_dark)).perform(click());
 
         // Open a deep link

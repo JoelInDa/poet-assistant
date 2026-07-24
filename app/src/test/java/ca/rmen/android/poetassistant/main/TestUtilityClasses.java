@@ -31,12 +31,8 @@ import ca.rmen.android.poetassistant.compat.VectorCompat;
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListFactory;
 import ca.rmen.android.poetassistant.main.dictionaries.Share;
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RTUtils;
-import ca.rmen.android.poetassistant.main.dictionaries.search.Patterns;
 import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter;
 import ca.rmen.android.poetassistant.widget.PopupMenuHelper;
-import ca.rmen.android.poetassistant.wotd.Wotd;
-import ca.rmen.android.poetassistant.wotd.WotdAlarm;
-import ca.rmen.android.poetassistant.wotd.WotdJob;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -78,10 +74,6 @@ public class TestUtilityClasses {
         assertUtilityClassVisibility(RTUtils.class);
     }
 
-    @Test
-    public void testPatterns() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(Patterns.class);
-    }
 
     @Test
     public void testProcessTextRouter() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -93,20 +85,8 @@ public class TestUtilityClasses {
         assertUtilityClassVisibility(PopupMenuHelper.class);
     }
 
-    @Test
-    public void testWotd() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(Wotd.class);
-    }
 
-    @Test
-    public void testWotdAlarm() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(WotdAlarm.class);
-    }
 
-    @Test
-    public void testWotdJob() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(WotdJob.class);
-    }
 
     private void assertUtilityClassVisibility(Class<?> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         Constructor<?> constructor = clazz.getDeclaredConstructor();

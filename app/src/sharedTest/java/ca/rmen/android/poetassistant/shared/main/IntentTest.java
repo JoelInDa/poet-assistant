@@ -124,26 +124,7 @@ public class IntentTest {
         checkDictionaryOnly("a sweet quick bread baked in a cup-shaped pan");
     }
 
-    @Test
-    public void onNewIntentSendTest() {
-        MainActivity activity = mActivityTestRule.launchActivity(new Intent());
-        String poemText = "Dare to be honest and fear no labor."; // Robert Burns
-        launchNewIntent(Intent.ACTION_SEND, Intent.EXTRA_TEXT, poemText);
-        checkTitleStripOrTab(activity, R.string.tab_reader);
-        onView(allOf(withId(R.id.tv_text), isDisplayed()))
-                .check(matches(withText(poemText)));
-    }
 
-    @Test
-    public void onCreateSendTest() {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        String poemText = "Dare to be honest and fear no labor."; // Robert Burns
-        intent.putExtra(Intent.EXTRA_TEXT, poemText);
-        MainActivity activity = mActivityTestRule.launchActivity(intent);
-        checkTitleStripOrTab(activity, R.string.tab_reader);
-        onView(allOf(withId(R.id.tv_text), isDisplayed()))
-                .check(matches(withText(poemText)));
-    }
 
     @Test
     public void onCreatehViewQueryTest() {

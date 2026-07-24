@@ -26,7 +26,6 @@ import ca.rmen.android.poetassistant.main.dictionaries.ResultListAdapterFactory
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.InstrumentationDictionaryListAdapter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.InstrumentationRTListAdapter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.OnWordClickListener
-import ca.rmen.android.poetassistant.wotd.InstrumentationWotdAdapter
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -36,9 +35,8 @@ import dagger.hilt.components.SingletonComponent
 class InstrumentationResultListAdapterFactory : ResultListAdapterFactory {
     override fun createAdapter(activity: Activity, tab: Tab): ResultListAdapter<out Any> {
         return when (tab) {
-            Tab.PATTERN, Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> InstrumentationRTListAdapter(tab, activity)
-            Tab.WOTD -> InstrumentationWotdAdapter(activity)
-            else -> InstrumentationDictionaryListAdapter(activity as OnWordClickListener)
+            Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> InstrumentationRTListAdapter(tab, activity)
+            Tab.DICTIONARY -> InstrumentationDictionaryListAdapter(activity as OnWordClickListener)
         }
     }
 }
