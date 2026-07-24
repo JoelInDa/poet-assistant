@@ -21,6 +21,7 @@ package ca.rmen.android.poetassistant.about
 
 import android.content.pm.PackageManager
 import androidx.databinding.DataBindingUtil
+import android.content.Context
 import android.os.Bundle
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
@@ -28,6 +29,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.core.view.updatePadding
 import ca.rmen.android.poetassistant.R
+import ca.rmen.android.poetassistant.FontScale
 import ca.rmen.android.poetassistant.compat.VectorCompat
 import ca.rmen.android.poetassistant.databinding.ActivityAboutBinding
 import ca.rmen.android.poetassistant.fixStatusBarViewForInsets
@@ -36,6 +38,10 @@ import ca.rmen.android.poetassistant.getInsets
 class AboutActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityAboutBinding
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(FontScale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

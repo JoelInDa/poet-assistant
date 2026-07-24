@@ -44,6 +44,10 @@ class SettingsChangeListener(
                 Theme.setThemeFromSettings(settingsPrefs)
                 restartSettingsActivity()
             }
+
+            // Text size is applied in each activity's attachBaseContext, so restart the stack
+            // to re-scale everything (including the main screen behind settings).
+            SettingsPrefs.PREF_TEXT_SIZE -> restartSettingsActivity()
         }
     }
 

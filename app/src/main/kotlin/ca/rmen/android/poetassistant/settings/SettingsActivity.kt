@@ -26,6 +26,7 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.content.Context
 import android.os.Bundle
 import android.provider.Settings
 import android.text.TextUtils
@@ -46,6 +47,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
+import ca.rmen.android.poetassistant.FontScale
 import ca.rmen.android.poetassistant.databinding.ActivitySettingsBinding
 import ca.rmen.android.poetassistant.getInsets
 import ca.rmen.android.poetassistant.fixStatusBarViewForInsets
@@ -64,6 +66,10 @@ private val TAG = Constants.TAG + SettingsActivity::class.java.simpleName
 class SettingsActivity : SettingsActivityImpl()
 
 open class SettingsActivityImpl : AppCompatActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(FontScale.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = DataBindingUtil.setContentView<ActivitySettingsBinding>(this, R.layout.activity_settings)

@@ -60,6 +60,15 @@
             android:summary="@string/pref_theme_summary"
             android:title="@string/pref_theme_title"/>
 
+        <ListPreference
+            android:defaultValue="1.0"
+            android:entries="@array/pref_text_size_titles"
+            android:entryValues="@array/pref_text_size_values"
+            android:key="PREF_TEXT_SIZE"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:summary="@string/pref_text_size_summary"
+            android:title="@string/pref_text_size_title"/>
 
     </PreferenceCategory>
 

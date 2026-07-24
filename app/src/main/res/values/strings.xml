@@ -207,6 +207,20 @@
         <item>Light</item>
         <item>Dark</item>
     </string-array>
+    <string name="pref_text_size_title">Text size</string>
+    <string name="pref_text_size_summary">%s</string>
+    <string-array name="pref_text_size_titles">
+        <item>Largest</item>
+        <item>Default</item>
+        <item>Smaller</item>
+        <item>Smallest</item>
+    </string-array>
+    <string-array name="pref_text_size_values">
+        <item>1.2</item>
+        <item>1.0</item>
+        <item>0.85</item>
+        <item>0.72</item>
+    </string-array>
     <string name="pref_layout_title">Layout</string>
     <string name="pref_layout_summary">%s</string>
     <string name="pref_layout_value_clean">Clean</string>

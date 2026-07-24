@@ -19,6 +19,8 @@
 
 package ca.rmen.android.poetassistant.about
 
+import ca.rmen.android.poetassistant.FontScale
+
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -51,6 +53,10 @@ class LicenseActivity: LicenseActivityImpl() {
 }
 
 open class LicenseActivityImpl : AppCompatActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(FontScale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

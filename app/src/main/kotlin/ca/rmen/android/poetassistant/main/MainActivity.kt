@@ -44,6 +44,7 @@ import androidx.lifecycle.ViewModelProvider
 import ca.rmen.android.poetassistant.BuildConfig
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.Favorites
+import ca.rmen.android.poetassistant.FontScale
 import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.Threading
 import ca.rmen.android.poetassistant.about.AboutActivity
@@ -99,6 +100,10 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
     // aren't mistaken for user navigation and recorded again.
     private var mSuppressHistory = false
     private lateinit var mBackCallback: OnBackPressedCallback
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(FontScale.wrap(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: savedInstanceState = $savedInstanceState")

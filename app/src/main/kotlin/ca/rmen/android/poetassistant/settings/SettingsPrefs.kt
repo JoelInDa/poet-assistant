@@ -31,6 +31,10 @@ class SettingsPrefs(application: Application) {
         const val THEME_LIGHT = "Light"
         const val THEME_DARK = "Dark"
         const val PREF_THEME = "PREF_THEME"
+        const val PREF_TEXT_SIZE = "PREF_TEXT_SIZE"
+        // Multiplies every sp size. 1.0 is the M1 baseline (already +25% for the panel); the four
+        // steps are one larger and two smaller, with 1.0 the default (the 3rd-largest).
+        const val TEXT_SIZE_DEFAULT = "1.0"
         private const val PREF_ALL_RHYMES_ENABLED = "PREF_ALL_RHYMES_ENABLED"
         private const val PREF_MATCH_AO_AA_ENABLED = "PREF_MATCH_AO_AA_ENABLED"
         private const val PREF_MATCH_AOR_AO_ENABLED = "PREF_MATCH_AOR_AO_ENABLED"
@@ -49,6 +53,10 @@ class SettingsPrefs(application: Application) {
         set(newValue) {
             sharedPreferences.edit().putString(PREF_THEME, newValue).apply()
         }
+
+    val textScale: Float
+        get() = (sharedPreferences.getString(PREF_TEXT_SIZE, TEXT_SIZE_DEFAULT)
+            ?: TEXT_SIZE_DEFAULT).toFloatOrNull() ?: 1.0f
 
     var isAllRhymesEnabled: Boolean
         get () {
