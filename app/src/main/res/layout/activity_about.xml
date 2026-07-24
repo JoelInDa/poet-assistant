@@ -43,7 +43,7 @@
                 android:alpha="0.2"
                 android:contentDescription="@string/app_name"
                 android:scaleType="fitEnd"
-                android:src="@mipmap/ic_launcher" />
+                android:src="@drawable/ic_app_icon" />
 
             <ScrollView
                 android:layout_width="match_parent"

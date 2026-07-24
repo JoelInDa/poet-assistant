@@ -17,6 +17,6 @@
   ~ along with Poet Assistant.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_background"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+    <background android:drawable="@drawable/ic_jlyrics_background"/>
+    <foreground android:drawable="@drawable/ic_jlyrics_foreground"/>
 </adaptive-icon>

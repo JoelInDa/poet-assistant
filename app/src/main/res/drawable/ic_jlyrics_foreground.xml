@@ -1,0 +1,22 @@
+<!--
+  ~ jLyrics Assistant launcher foreground: a single eighth note, white, centred in the
+  ~ adaptive-icon safe zone. Reads as "music / lyrics" at tiny launcher size and is clearly
+  ~ distinct from upstream's "PA" book icon so the fork and the original don't look identical.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- notehead (circle) + stem + flag, one filled path, centred in the safe zone.
+         notehead centre (46,68) r12; stem up its right edge to y=28; flag off the top. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,68
+            a12,12 0 1,0 24,0
+            a12,12 0 1,0 -24,0 z
+            M53,28 h5 v40 h-5 z
+            M58,27
+            c13,2 17,13 11,24
+            c1,-11 -3,-18 -11,-20 z" />
+</vector>

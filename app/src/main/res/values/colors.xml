@@ -40,7 +40,6 @@
     <color name="row_background_color_even">#ffffff</color>
     <color name="row_background_color_odd">#f8f8f8</color>
     <color name="divider">#1f000000</color>
-    <color name="ic_launcher_background">#FFFFFF</color>
     <!-- The app bar gets its own colour rather than reusing primary: primary also fills
          the R/T/D row icons (ic_rhymer.xml etc), so the two cannot move together. -->
     <color name="app_bar">@color/primary</color>
