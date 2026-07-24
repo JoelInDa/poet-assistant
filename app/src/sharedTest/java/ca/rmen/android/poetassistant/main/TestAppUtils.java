@@ -143,53 +143,8 @@ public class TestAppUtils {
                 .check(matches(isNotChecked()));
     }
 
-    public static ViewInteraction openFilter(String expectedPrefilledFilter) {
-        getInstrumentation().waitForIdleSync();
-        ViewInteraction vi = onView(allOf(withId(R.id.btn_filter), withContentDescription(R.string.filter_title), isDisplayed()));
-        vi.check(matches(isDisplayed()));
-        vi.perform(click());
-        SystemClock.sleep(200);
-        ViewInteraction result = onView(allOf(
-                withId(R.id.edit),
-                isDisplayed()))
-                .inRoot(isFocusable());
-        result.check(matches(withText(expectedPrefilledFilter)));
-        return result;
-    }
 
-    public static void addFilter(Tab tab, String filter, String firstExpectedFilteredMatch) {
-        @IdRes int recyclerViewId = ResultListFactory.INSTANCE.getRecyclerViewId(tab);
-        ViewInteraction filterView = openFilter("");
-        filterView.perform(typeText(filter), closeSoftKeyboard());
-        clickDialogPositiveButton(android.R.string.ok);
 
-        if (TextUtils.isEmpty(firstExpectedFilteredMatch)) {
-            onView(allOf(withId(R.id.empty), hasSibling(withId(recyclerViewId)), isDisplayed()))
-                    .check(matches(isDisplayed()));
-        } else {
-            onView(allOf(withId(R.id.empty), hasSibling(allOf(withId(recyclerViewId), isDisplayed()))))
-                    .check(matches(not(isDisplayed())));
-            // Pills are direct children of the recycler view now (was text -> row -> recycler).
-            onView(allOf(withId(R.id.text1),
-                    withText(firstExpectedFilteredMatch),
-                    withParent(withId(recyclerViewId)),
-                    isDisplayed()))
-                    .check(matches(withText(firstExpectedFilteredMatch)));
-        }
-
-    }
-
-    public static void clearFilter(Tab tab, String firstExpectedNonFilteredMatch) {
-        @IdRes int recyclerViewId = ResultListFactory.INSTANCE.getRecyclerViewId(tab);
-        onView(allOf(withId(R.id.btn_clear), withContentDescription(R.string.filter_clear), isDisplayed()))
-                .perform(click());
-
-        onView(allOf(withId(R.id.text1),
-                withText(firstExpectedNonFilteredMatch),
-                withParent(withParent(withId(recyclerViewId))),
-                isDisplayed()))
-                .check(matches(withText(firstExpectedNonFilteredMatch)));
-    }
 
     public static void clearStarredWords() {
         onView(allOf(withId(R.id.btn_delete), withContentDescription(R.string.action_clear_favorites), isDisplayed())).perform(click());

@@ -23,7 +23,6 @@ package ca.rmen.android.poetassistant.shared.main;
 import static androidx.test.espresso.Espresso.pressBack;
 import static ca.rmen.android.poetassistant.main.CustomChecks.checkRhyme;
 import static ca.rmen.android.poetassistant.main.CustomChecks.checkSynonym;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.addFilter;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.search;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.clickPreference;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.openMenuItem;
@@ -75,20 +74,5 @@ public class ThesaurusSettingsTest {
         checkSynonym("blunder");
     }
 
-    @Test
-    public void testFilterWithReverseLookupEnabled() {
-        openMenuItem(R.string.action_settings);
-        clickPreference(R.string.thesaurus_reverse_lookup_setting_title);
-        pressBack();
-        search("number");
-        addFilter(Tab.RHYMER, "mistake", "bloomer");
-        checkRhyme("blunder");
-    }
 
-    @Test(expected = NoMatchingViewException.class)
-    public void testFilterWithReverseLookupDisabled() {
-        search("number");
-        addFilter(Tab.RHYMER, "mistake", null);
-        checkRhyme("blunder");
-    }
 }

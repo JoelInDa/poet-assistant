@@ -36,7 +36,6 @@ import dagger.hilt.android.EntryPointAccessors
 class ResultListHeaderViewModel(application: Application) : AndroidViewModel(application) {
     val query = ObservableField<String>()
     val isMatchedWordSelectable = ObservableField(false)
-    val filter = ObservableField<String>()
     val isFavorite = ObservableBoolean()
     val showHeader = ObservableBoolean()
 
@@ -64,10 +63,6 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
             }
         }))
     }
-
-    fun clearFilter() = filter.set(null)
-
-    fun webSearch() = query.get()?.let { WebSearch.search(getApplication(), it) }
 
     fun clearFavorites() {
         mFavorites.clear()

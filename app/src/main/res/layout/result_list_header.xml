@@ -24,7 +24,6 @@
     <data>
 
         <import type="android.view.View"/>
-        <import type="android.text.TextUtils"/>
         <variable
             name="buttonListener"
             type="ca.rmen.android.poetassistant.main.dictionaries.ResultListHeaderFragment.ButtonListener" />
@@ -124,82 +123,7 @@
                 tools:visibility="visible"
                 android:focusable="true"/>
 
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btn_filter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignWithParentIfMissing="true"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/btn_web_search"
-                android:background="?selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@string/filter_hint"
-                android:onClick="@{buttonListener::onFilterButtonClicked}"
-                android:padding="8dp"
-                android:visibility="gone"
-                app:srcCompat="@drawable/ic_filter_list"
-                tools:visibility="visible"
-                android:focusable="true"/>
-
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:id="@+id/btn_web_search"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignWithParentIfMissing="true"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/btn_delete"
-                android:background="?selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:contentDescription="@string/action_search"
-                android:onClick="@{() -> viewModel.webSearch()}"
-                android:padding="8dp"
-                app:srcCompat="@drawable/ic_web_search"
-                android:focusable="true"/>
-
         </RelativeLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/shape_rounded_rect"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="@{TextUtils.isEmpty(viewModel.filter)? View.GONE : View.VISIBLE}"
-            tools:visibility="visible">
-
-            <TextView
-                android:id="@+id/tv_filter_label"
-                android:layout_width="wrap_content"
-                android:layout_height="24dp"
-                android:layout_gravity="center_vertical"
-                android:gravity="center_vertical"
-                android:text="@null"
-                android:textColor="?attr/colorOnPrimary"
-                tools:text="@string/filter_rhymer_label" />
-
-            <TextView
-                android:id="@+id/tv_filter"
-                android:layout_width="wrap_content"
-                android:layout_height="24dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="8dp"
-                android:freezesText="true"
-                android:gravity="center_vertical"
-                android:textColor="?attr/colorOnPrimary"
-                android:text="@={viewModel.filter}"
-                tools:text="yesterday" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/btn_clear"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:contentDescription="@string/filter_clear"
-                android:onClick="@{() -> viewModel.clearFilter()}"
-                app:srcCompat="@drawable/ic_clear" />
-        </LinearLayout>
-
 
     </LinearLayout>
 </layout>

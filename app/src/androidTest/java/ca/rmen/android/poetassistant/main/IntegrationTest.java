@@ -34,8 +34,6 @@ import static ca.rmen.android.poetassistant.main.CustomChecks.checkAllStarredWor
 import static ca.rmen.android.poetassistant.main.CustomChecks.checkClipboard;
 import static ca.rmen.android.poetassistant.main.CustomChecks.checkRhymes;
 import static ca.rmen.android.poetassistant.main.CustomChecks.checkStarredInList;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.addFilter;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.clearFilter;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.clearStarredWords;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.openDictionary;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.openDictionaryCleanLayout;
@@ -132,11 +130,7 @@ public class IntegrationTest {
         checkAllStarredWords(context, data.secondSynonymForFirstRhyme);
         swipeViewPagerRight(3);
         checkStarredInList(data.secondSynonymForFirstRhyme);
-        addFilter(Tab.THESAURUS, data.thesaurusFilter, data.thesaurusFilterMatch);
-        clearFilter(Tab.THESAURUS, data.firstSynonymForFirstRhyme);
         swipeViewPagerRight(1);
-        addFilter(Tab.RHYMER, data.rhymerFilter, data.rhymerFilterMatch);
-        clearFilter(Tab.RHYMER, data.firstRhyme);
         swipeViewPagerLeft(3);
         swipeViewPagerLeft(1);
         checkAllStarredWords(context, data.secondSynonymForFirstRhyme);
@@ -159,11 +153,7 @@ public class IntegrationTest {
         checkAllStarredWords(context, data.secondSynonymForFirstRhyme);
         swipeViewPagerRight(3);
         checkStarredInList(data.secondSynonymForFirstRhyme);
-        addFilter(Tab.THESAURUS, data.thesaurusFilter, data.thesaurusFilterMatch);
-        clearFilter(Tab.THESAURUS, data.firstSynonymForFirstRhyme);
         swipeViewPagerRight(1);
-        addFilter(Tab.RHYMER, data.rhymerFilter, data.rhymerFilterMatch);
-        clearFilter(Tab.RHYMER, data.firstRhyme);
         swipeViewPagerLeft(3);
         swipeViewPagerLeft(1);
         checkAllStarredWords(context, data.secondSynonymForFirstRhyme);

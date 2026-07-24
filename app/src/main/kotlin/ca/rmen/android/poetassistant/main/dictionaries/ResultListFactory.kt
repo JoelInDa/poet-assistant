@@ -90,11 +90,11 @@ object ResultListFactory {
         }
     }
 
-    fun createLiveData(tab: Tab, context: Context, query: String?, filter: String?): ResultListLiveData<out ResultListData<Any>> {
+    fun createLiveData(tab: Tab, context: Context, query: String?): ResultListLiveData<out ResultListData<Any>> {
         return when (tab) {
             Tab.FAVORITES -> FavoritesLiveData(context)
-            Tab.RHYMER -> RhymerLiveData(context, query!!, filter)
-            Tab.THESAURUS -> ThesaurusLiveData(context, query!!, filter)
+            Tab.RHYMER -> RhymerLiveData(context, query!!)
+            Tab.THESAURUS -> ThesaurusLiveData(context, query!!)
             Tab.DICTIONARY -> DictionaryLiveData(context, query!!)
         }
     }
@@ -105,21 +105,6 @@ object ResultListFactory {
             Tab.RHYMER -> RhymerListExporter(context)
             Tab.THESAURUS -> ThesaurusListExporter(context)
             Tab.DICTIONARY -> DictionaryListExporter(context)
-        }
-    }
-
-    fun createFilterDialog(context: Context, tab: Tab, text: String?): FilterDialogFragment {
-        val dialogMessage = when (tab) {
-            Tab.RHYMER -> context.getString(R.string.filter_rhymer_message)
-            else -> context.getString(R.string.filter_thesaurus_message)
-        }
-        return FilterDialogFragment.newInstance(dialogMessage, text)
-    }
-
-    fun getFilterLabel(context: Context, tab: Tab): String {
-        return when (tab) {
-            Tab.RHYMER -> context.getString(R.string.filter_rhymer_label)
-            else -> context.getString(R.string.filter_thesaurus_label)
         }
     }
 
@@ -135,20 +120,13 @@ object ResultListFactory {
     fun isLoadWithoutQuerySupported(tab: Tab): Boolean = tab == Tab.FAVORITES
 
     /**
-     * Set the various buttons which appear in the result list header (ex: web search,
-     * filter, help) to visible or gone, depending on the tab.
+     * On the favorites list the header word is just a label, so hide its star and show the
+     * "clear all" button instead. Every other tab keeps the default (star shown, delete hidden).
      */
     fun updateListHeaderButtonsVisibility(binding: ResultListHeaderBinding, tab: Tab) {
-        when (tab) {
-            Tab.FAVORITES -> {
-                binding.btnWebSearch.visibility = View.GONE
-                binding.btnStarQuery.visibility = View.GONE
-                binding.btnDelete.visibility = View.VISIBLE
-            }
-            Tab.RHYMER, Tab.THESAURUS -> {
-                binding.btnFilter.visibility = View.VISIBLE
-            }
-            Tab.DICTIONARY -> Unit
+        if (tab == Tab.FAVORITES) {
+            binding.btnStarQuery.visibility = View.GONE
+            binding.btnDelete.visibility = View.VISIBLE
         }
     }
 

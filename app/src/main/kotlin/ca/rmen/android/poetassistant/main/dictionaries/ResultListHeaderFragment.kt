@@ -34,9 +34,8 @@ import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.databinding.ResultListHeaderBinding
 import ca.rmen.android.poetassistant.main.Tab
-import java.util.Locale
 
-class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogListener, ConfirmDialogFragment.ConfirmDialogListener {
+class ResultListHeaderFragment : Fragment(), ConfirmDialogFragment.ConfirmDialogListener {
     companion object {
         private val TAG = Constants.TAG + ResultListHeaderFragment::class.java.simpleName
         private const val ACTION_CLEAR_FAVORITES = 1
@@ -66,9 +65,6 @@ class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogLi
         }
 
         mBinding = DataBindingUtil.inflate(inflater, R.layout.result_list_header, container, false)
-        context?.let {
-            mBinding.tvFilterLabel.text = ResultListFactory.getFilterLabel(it, mTab)
-        }
         mBinding.buttonListener = ButtonListener()
         parentFragment?.let {
             mViewModel = ViewModelProvider(it).get(ResultListHeaderViewModel::class.java)
@@ -79,10 +75,6 @@ class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogLi
         ResultListFactory.updateListHeaderButtonsVisibility(mBinding, mTab)
         return mBinding.root
 
-    }
-
-    override fun onFilterSubmitted(input: String) {
-        mViewModel.filter.set(input.lowercase(Locale.getDefault()).trim())
     }
 
     override fun onOk(actionId: Int) {
@@ -107,13 +99,6 @@ class ResultListHeaderFragment : Fragment(), FilterDialogFragment.FilterDialogLi
                     getString(R.string.action_clear),
                     childFragmentManager,
                     DIALOG_TAG)
-        }
-
-        fun onFilterButtonClicked(@Suppress("UNUSED_PARAMETER") v: View) {
-            context?.let {
-                val fragment = ResultListFactory.createFilterDialog(it, mTab, mViewModel.filter.get())
-                childFragmentManager.beginTransaction().add(fragment, DIALOG_TAG).commit()
-            }
         }
 
         fun onHelpButtonClicked(@Suppress("UNUSED_PARAMETER") v: View) {

@@ -32,64 +32,32 @@ import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import ca.rmen.rhymer.RhymeResult
 import dagger.hilt.android.EntryPointAccessors
 
-class RhymerLiveData(context: Context, val query: String, val filter: String?) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
+class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
 
     companion object {
         private val TAG = Constants.TAG + RhymerLiveData::class.java.simpleName
-        private fun filter(rhymes: List<RhymeResult>, filter: Collection<String>): List<RhymeResult> {
-            val filteredRhymes = ArrayList<RhymeResult>()
-            rhymes.forEach {
-                val filteredRhymeResult = filter(it, filter)
-                if (filteredRhymeResult != null) filteredRhymes.add(filteredRhymeResult)
-            }
-            return filteredRhymes
-        }
-
-        private fun filter(rhyme: RhymeResult, filter: Collection<String>): RhymeResult? {
-            val result = RhymeResult(rhyme.variantNumber,
-                    RTUtils.filter(rhyme.strictRhymes, filter),
-                    RTUtils.filter(rhyme.oneSyllableRhymes, filter),
-                    RTUtils.filter(rhyme.twoSyllableRhymes, filter),
-                    RTUtils.filter(rhyme.threeSyllableRhymes, filter))
-            if (isEmpty(result)) return null
-            return result
-        }
-
-        private fun isEmpty(rhymeResult: RhymeResult): Boolean {
-            return rhymeResult.strictRhymes.isEmpty()
-                    && rhymeResult.oneSyllableRhymes.isEmpty()
-                    && rhymeResult.twoSyllableRhymes.isEmpty()
-                    && rhymeResult.threeSyllableRhymes.isEmpty()
-        }
     }
 
     private val mPrefs: SettingsPrefs
     private val mRhymer: Rhymer
-    private val mThesaurus: Thesaurus
     private val mFavorites: Favorites
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, NonAndroidEntryPoint::class.java)
         mRhymer = entryPoint.rhymer()
-        mThesaurus = entryPoint.thesaurus()
         mPrefs = entryPoint.prefs()
         mFavorites = entryPoint.favorites()
     }
 
     override fun loadInBackground(): ResultListData<RTEntryViewModel> {
-        Log.d(TAG, "loadInBackground: query=$query, filter=$filter")
+        Log.d(TAG, "loadInBackground: query=$query")
         val before = System.currentTimeMillis()
 
         val data = ArrayList<RTEntryViewModel>()
         if (TextUtils.isEmpty(query)) return emptyResult()
 
-        var rhymeResults = mRhymer.getRhymingWords(query, Constants.MAX_RESULTS)
+        val rhymeResults = mRhymer.getRhymingWords(query, Constants.MAX_RESULTS)
                 ?: return emptyResult()
-        if (!TextUtils.isEmpty(filter)) {
-            val synonyms = mThesaurus.getFlatSynonyms(filter!!, mPrefs.isThesaurusReverseLookupEnabled)
-            if (synonyms.isEmpty()) return emptyResult()
-            rhymeResults = filter(rhymeResults, synonyms)
-        }
 
         val layout = SettingsPrefs.getLayout(mPrefs)
         // The favorite set is still used to flag matching words (their pills get the gold

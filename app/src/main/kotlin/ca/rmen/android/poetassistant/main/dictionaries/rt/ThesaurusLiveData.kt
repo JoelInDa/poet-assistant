@@ -23,7 +23,6 @@ import android.content.Context
 import android.text.TextUtils
 import android.util.Log
 import androidx.annotation.StringRes
-import androidx.annotation.VisibleForTesting
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.Favorites
 import ca.rmen.android.poetassistant.R
@@ -34,59 +33,30 @@ import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import dagger.hilt.android.EntryPointAccessors
 import java.util.Locale
 
-class ThesaurusLiveData constructor(context: Context, private val query: String, private val filter: String?) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
+class ThesaurusLiveData constructor(context: Context, private val query: String) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
     companion object {
         private val TAG = Constants.TAG + ThesaurusLiveData::class.java.simpleName
-        @VisibleForTesting
-        fun filter(entries: List<ThesaurusEntry.ThesaurusEntryDetails>, filter: Set<String>): List<ThesaurusEntry.ThesaurusEntryDetails> {
-            val filteredEntries = ArrayList<ThesaurusEntry.ThesaurusEntryDetails>()
-            entries.forEach {
-                val filteredEntry = filter(it, filter)
-                if (filteredEntry != null) filteredEntries.add(filteredEntry)
-            }
-            return filteredEntries
-        }
-
-        private fun filter(entry: ThesaurusEntry.ThesaurusEntryDetails, filter: Set<String>): ThesaurusEntry.ThesaurusEntryDetails? {
-            val filteredEntry = ThesaurusEntry.ThesaurusEntryDetails(entry.wordType,
-                    RTUtils.filter(entry.synonyms, filter),
-                    RTUtils.filter(entry.antonyms, filter))
-            if (isEmpty(filteredEntry)) return null
-            return filteredEntry
-        }
-
-        private fun isEmpty(entry: ThesaurusEntry.ThesaurusEntryDetails): Boolean {
-            return entry.synonyms.isEmpty() && entry.antonyms.isEmpty()
-        }
-
     }
 
-    private val mRhymer: Rhymer
     private val mThesaurus: Thesaurus
     private val mPrefs: SettingsPrefs
     private val mFavorites: Favorites
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, NonAndroidEntryPoint::class.java)
-        mRhymer = entryPoint.rhymer()
         mThesaurus = entryPoint.thesaurus()
         mPrefs = entryPoint.prefs()
         mFavorites = entryPoint.favorites()
     }
 
     override fun loadInBackground(): ResultListData<RTEntryViewModel> {
-        Log.d(TAG, "loadInBackground: query=$query, filter=$filter")
+        Log.d(TAG, "loadInBackground: query=$query")
 
         val data = ArrayList<RTEntryViewModel>()
         if (TextUtils.isEmpty(query)) return emptyResult()
         val result = mThesaurus.lookup(query, mPrefs.isThesaurusReverseLookupEnabled)
-        var entries = result.entries
+        val entries = result.entries
         if (entries.isEmpty()) return emptyResult()
-
-        if (!TextUtils.isEmpty(filter)) {
-            val rhymes = mRhymer.getFlatRhymes(filter!!)
-            entries = filter(entries, rhymes)
-        }
 
         val layout = SettingsPrefs.getLayout(mPrefs)
         val favorites = mFavorites.getFavorites()

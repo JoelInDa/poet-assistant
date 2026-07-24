@@ -57,7 +57,6 @@ class ResultListFragment<out T: Any> : Fragment() {
         private val TAG = Constants.TAG + ResultListFragment::class.java.simpleName
         const val EXTRA_TAB = "tab"
         const val EXTRA_QUERY = "query"
-        private const val EXTRA_FILTER = "filter"
     }
 
     private lateinit var mBinding: FragmentResultListBinding
@@ -106,7 +105,6 @@ class ResultListFragment<out T: Any> : Fragment() {
             mViewModel.emptyText.observe(this, mEmptyTextObserver)
             mViewModel.isDataAvailable.addOnPropertyChangedCallback(mDataAvailableChanged)
             mHeaderViewModel = ViewModelProvider(this).get(ResultListHeaderViewModel::class.java)
-            mHeaderViewModel.filter.addOnPropertyChangedCallback(mFilterChanged)
             var headerFragment = childFragmentManager.findFragmentById(R.id.result_list_header)
             if (headerFragment == null) {
                 headerFragment = ResultListHeaderFragment.newInstance(it)
@@ -144,14 +142,13 @@ class ResultListFragment<out T: Any> : Fragment() {
     override fun onDestroyView() {
         Log.v(TAG, "$mTab onDestroyView")
         mViewModel.isDataAvailable.removeOnPropertyChangedCallback(mDataAvailableChanged)
-        mHeaderViewModel.filter.removeOnPropertyChangedCallback(mFilterChanged)
         super.onDestroyView()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.action_share) {
             mHeaderViewModel.query.get()?.let {
-                mViewModel.share(it, mHeaderViewModel.filter.get())
+                mViewModel.share(it)
             }
         }
         return super.onOptionsItemSelected(item)
@@ -166,19 +163,18 @@ class ResultListFragment<out T: Any> : Fragment() {
         Log.v(TAG, "$mTab: queryFromArguments: $arguments")
         arguments?.let {
             if (it.containsKey(EXTRA_QUERY)) {
-                mViewModel.setQueryParams(ResultListViewModel.QueryParams(it.getString(EXTRA_QUERY), it.getString(EXTRA_FILTER)))
+                mViewModel.setQueryParams(ResultListViewModel.QueryParams(it.getString(EXTRA_QUERY)))
             }
         }
     }
 
     fun query(query: String) {
         Log.d(TAG, "$mTab : query: $query")
-        mHeaderViewModel.filter.set(null)
         if (userVisibleHint) {
             AppBarLayoutHelper.disableAutoHide(activity)
             AppBarLayoutHelper.forceExpandAppBarLayout(activity)
         }
-        mViewModel.setQueryParams(ResultListViewModel.QueryParams(query, null))
+        mViewModel.setQueryParams(ResultListViewModel.QueryParams(query))
         Log.v(TAG, "$mTab: query: invalidate options menu")
         activity?.invalidateOptionsMenu()
     }
@@ -228,12 +224,6 @@ class ResultListFragment<out T: Any> : Fragment() {
         }
     })
 
-    private val mFilterChanged = BindingCallbackAdapter(object : BindingCallbackAdapter.Callback {
-        override fun onChanged() {
-            reload()
-        }
-    })
-
     private val mShowHeaderChanged = Observer<Boolean> { showHeader -> mHeaderViewModel.showHeader.set(showHeader == true) }
 
     private val mLayoutSettingChanged = Observer<SettingsPrefs.Layout> { reload() }
@@ -277,8 +267,8 @@ class ResultListFragment<out T: Any> : Fragment() {
     }
 
     private fun reload() {
-        Log.v(TAG, "$mTab: reload: query=${mHeaderViewModel.query.get()}, filter=${mHeaderViewModel.filter.get()}")
-        mViewModel.setQueryParams(ResultListViewModel.QueryParams(mHeaderViewModel.query.get(), mHeaderViewModel.filter.get()))
+        Log.v(TAG, "$mTab: reload: query=${mHeaderViewModel.query.get()}")
+        mViewModel.setQueryParams(ResultListViewModel.QueryParams(mHeaderViewModel.query.get()))
     }
 
     // If we have an empty list because the user didn't enter any search term,

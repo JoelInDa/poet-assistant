@@ -52,7 +52,7 @@ class ResultListViewModel<T: Any> constructor(
     val usedQueryWord = MutableLiveData<String>()
     private var mAdapter: ResultListAdapter<T>? = null
 
-    data class QueryParams(val word: String?, val filter: String?)
+    data class QueryParams(val word: String?)
 
     private val mPrefsListener : PrefsListener
     private val mQueryParams = MutableLiveData<QueryParams>()
@@ -68,7 +68,7 @@ class ResultListViewModel<T: Any> constructor(
         favoritesLiveData = entryPoint.favorites().getFavoritesLiveData()
         resultListDataLiveData = mQueryParams.switchMap { queryParams ->
             @Suppress("UNCHECKED_CAST")
-            ResultListFactory.createLiveData(tab, application, queryParams.word, queryParams.filter) as LiveData<ResultListData<T>>
+            ResultListFactory.createLiveData(tab, application, queryParams.word) as LiveData<ResultListData<T>>
         }
     }
 
@@ -83,9 +83,9 @@ class ResultListViewModel<T: Any> constructor(
         mAdapter = adapter
     }
 
-    fun share(query: String, filter: String?) {
+    fun share(query: String) {
         mAdapter?.let {
-            Share.share(getApplication(), tab, query, filter, it.getAll())
+            Share.share(getApplication(), tab, query, null, it.getAll())
         }
     }
 

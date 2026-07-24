@@ -33,7 +33,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.addFilter;
 import static ca.rmen.android.poetassistant.main.TestAppUtils.search;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.openMenuItem;
 import static ca.rmen.android.poetassistant.main.TestUiUtils.swipeViewPagerLeft;
@@ -75,16 +74,6 @@ public class ShareTest {
         checkShareIntentContains("flaunt");
     }
 
-    @Test
-    public void shareFilteredThesaurusTest() {
-        Context context = mActivityTestRule.getActivity();
-        search("happy");
-        swipeViewPagerLeft(1);
-        addFilter(Tab.THESAURUS, "messed", "blessed");
-        openMenuItem(R.string.share);
-        String expectedContent = context.getString(R.string.share_thesaurus_title_with_filter, "happy", "messed");
-        checkShareIntentContains(expectedContent);
-    }
 
     @Test
     public void shareFavoritesTest() {
