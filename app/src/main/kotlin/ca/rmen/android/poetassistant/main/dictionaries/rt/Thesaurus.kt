@@ -24,10 +24,7 @@ import android.util.Log
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb
 import ca.rmen.android.poetassistant.main.dictionaries.textprocessing.WordSimilarities
-import java.util.Arrays
-import java.util.Collections.singletonList
 import java.util.EnumSet
-import java.util.Locale
 import javax.inject.Inject
 
 class Thesaurus @Inject constructor(private val embeddedDb: EmbeddedDb) {
@@ -102,32 +99,27 @@ class Thesaurus @Inject constructor(private val embeddedDb: EmbeddedDb) {
      * @param word                the word for which we want to find synonyms or antonyms
      * @param excludeRelatedWords words from this collection will be excluded from the result
      * @return words which have an entry in the thesaurus table containing the given word as a synonym or antonym.
+     *
+     * This reads the precomputed `thesaurus_reverse` table (built by tools/rhymedb/build_db.py):
+     * an inverted copy of `thesaurus` where a row (word=X, word_type=T, synonyms=...) lists the
+     * words of type T that have X among *their* synonyms. So the reverse lookup is an indexed
+     * `word = ?` query instead of the old leading-wildcard LIKE that scanned the whole table
+     * (~3.5s on the Palm). The referring words are stored in the same order the old scan produced
+     * them, so results are unchanged.
      */
     private fun lookupReverseRelatedWords(relationType: RelationType, word: String, excludeRelatedWords: Collection<String>): List<ThesaurusEntry.ThesaurusEntryDetails> {
-        Log.v(TAG, "lookupReverseRelatedWords: relationType=$relationType, word=$word, exclude=$excludeRelatedWords")
-        val projection = arrayOf("word", "word_type")
-        var selection = String.format(Locale.US, "(%s = ? OR %S LIKE ? OR %S LIKE ? OR %S LIKE ?) ",
-                relationType.columnName, relationType.columnName, relationType.columnName, relationType.columnName)
-        val selectionArgs = Array(4 + excludeRelatedWords.size) { ""}
-        var i = 0
-        selectionArgs[i++] = word // only relatedWord
-        selectionArgs[i++] = String.format(Locale.US, "%s,%%", word) // first relatedWord
-        selectionArgs[i++] = String.format(Locale.US, "%%,%s", word) // last relatedWord
-        selectionArgs[i++] = String.format(Locale.US, "%%,%s,%%", word) // somewhere in the list of relatedWords
-        if (excludeRelatedWords.isNotEmpty()) {
-            selection += " AND word NOT IN " + EmbeddedDb.buildInClause(excludeRelatedWords.size)
-            excludeRelatedWords.forEach { selectionArgs[i++] = it }
-        }
-        Log.v(TAG, "Query: selection = $selection")
-        Log.v(TAG, "Query: selectionArgs=${Arrays.toString(selectionArgs)}")
-        val cursor = embeddedDb.query("thesaurus", projection, selection, selectionArgs)
+        Log.v(TAG, "lookupReverseRelatedWords: relationType=$relationType, word=$word")
+        val exclude = excludeRelatedWords.toHashSet()
+        val projection = arrayOf("word_type", relationType.columnName)
+        val cursor = embeddedDb.query("thesaurus_reverse", projection, "word=?", arrayOf(word))
         cursor?.use {
             val reverseRelatedWords = ArrayList<ThesaurusEntry.ThesaurusEntryDetails>()
             while (cursor.moveToNext()) {
-                val relatedWord = cursor.getString(0)
-                val wordType = ThesaurusEntry.WordType.valueOf(cursor.getString(1))
-                val entryDetails = if (relationType == RelationType.SYNONYM) ThesaurusEntry.ThesaurusEntryDetails(wordType, singletonList(relatedWord), emptyList())
-                else ThesaurusEntry.ThesaurusEntryDetails(wordType, emptyList(), singletonList(relatedWord))
+                val wordType = ThesaurusEntry.WordType.valueOf(cursor.getString(0))
+                val relatedWords = split(cursor.getString(1)).filterNot { exclude.contains(it) }
+                if (relatedWords.isEmpty()) continue
+                val entryDetails = if (relationType == RelationType.SYNONYM) ThesaurusEntry.ThesaurusEntryDetails(wordType, relatedWords, emptyList())
+                else ThesaurusEntry.ThesaurusEntryDetails(wordType, emptyList(), relatedWords)
 
                 reverseRelatedWords.add(entryDetails)
             }

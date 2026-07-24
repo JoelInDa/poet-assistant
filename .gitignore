@@ -13,3 +13,8 @@ app/schemas
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# rhymedb build input: the pristine original asset DB (dev-local backup + build input for
+# tools/rhymedb/build_db.py). Not committed to avoid repo bloat - it's recoverable from git
+# history: `git show <commit-before-v2>:app/src/main/assets/poet_assistant.db > tools/rhymedb/poet_assistant.base.db`
+tools/rhymedb/poet_assistant.base.db
