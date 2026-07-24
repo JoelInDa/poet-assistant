@@ -49,6 +49,7 @@ import ca.rmen.android.poetassistant.databinding.FragmentResultListBinding
 import ca.rmen.android.poetassistant.getInsets
 import ca.rmen.android.poetassistant.main.AppBarLayoutHelper
 import ca.rmen.android.poetassistant.main.Tab
+import ca.rmen.android.poetassistant.main.dictionaries.rt.RTEntryViewModel
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 
 class ResultListFragment<out T: Any> : Fragment() {
@@ -237,7 +238,22 @@ class ResultListFragment<out T: Any> : Fragment() {
 
     private val mLayoutSettingChanged = Observer<SettingsPrefs.Layout> { reload() }
 
-    private val mFavoritesObserver = Observer<List<Favorite>> { reload() }
+    // When favorites change, refresh the star state on the pills we already have rather than
+    // re-running the whole query. The old reload() re-ran the (slow) rhyme lookup on every
+    // favorite toggle and made the list fade out and back in. The gold border is data-bound to
+    // each item's isFavorite, so flipping that observable repaints just the affected pills.
+    private val mFavoritesObserver = Observer<List<Favorite>> { favorites ->
+        val favoriteWords = HashSet<String>(favorites.size)
+        favorites.forEach { favoriteWords.add(it.getWord()) }
+        (mBinding.recyclerView.adapter as? ResultListAdapter<*>)?.getAll()?.forEach { item ->
+            if (item is RTEntryViewModel && item.type == RTEntryViewModel.Type.WORD) {
+                val shouldBeFavorite = favoriteWords.contains(item.text)
+                // set() only notifies (and only triggers the save-back callback) on a real change,
+                // so items already in sync are a no-op and there's no feedback loop.
+                if (item.isFavorite.get() != shouldBeFavorite) item.isFavorite.set(shouldBeFavorite)
+            }
+        }
+    }
 
     private val mUsedQueryWordChanged = Observer<String> { usedQueryWord ->
         mHeaderViewModel.query.set(usedQueryWord)

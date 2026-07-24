@@ -1,0 +1,8 @@
+<!--
+  ~ Tint for the result-list header favorite star: gold when the current word is favorited
+  ~ (matching the gold border on favorited pills), the usual grey otherwise.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/chip_favorite_stroke" android:state_checked="true" />
+    <item android:color="#888888" />
+</selector>

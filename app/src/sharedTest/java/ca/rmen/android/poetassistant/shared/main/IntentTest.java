@@ -187,40 +187,26 @@ public class IntentTest {
         getInstrumentation().runOnMainSync(() -> TestAppUtils.onNewIntent(mActivityTestRule.getActivity(), intent));
     }
 
+    // A deep link now lands on the requested tool AND loads the word into every tool (the word is
+    // global, so swiping between tools is instant). These helpers therefore only verify the deep
+    // link lands on the right tab with the right content; they no longer assert the other tabs are
+    // empty (they intentionally are not any more).
     private void checkRhymerOnly(String expectedRhyme1, String expectedRhyme2) {
         Activity activity = mActivityTestRule.getActivity();
         checkTitleStripOrTab(activity, R.string.tab_rhymer);
         checkRhymes(activity, expectedRhyme1, expectedRhyme2);
-        swipeViewPagerLeft(1);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
-        swipeViewPagerLeft(1);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
     }
 
     private void checkThesaurusOnly(String expectedFirstSynonym) {
         Activity activity = mActivityTestRule.getActivity();
         checkTitleStripOrTab(activity, R.string.tab_thesaurus);
         checkFirstSynonym(expectedFirstSynonym);
-        swipeViewPagerLeft(1);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
-        swipeViewPagerRight(2);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
     }
 
     private void checkDictionaryOnly(String expectedFirstDefinition) {
         Activity activity = mActivityTestRule.getActivity();
         checkTitleStripOrTab(activity, R.string.tab_dictionary);
         checkFirstDefinition(expectedFirstDefinition);
-        swipeViewPagerRight(1);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
-        swipeViewPagerRight(1);
-        onView(allOf(withId(R.id.empty), isDisplayed(), withText(R.string.empty_list_without_query)))
-                .check(matches(isDisplayed()));
     }
 
 

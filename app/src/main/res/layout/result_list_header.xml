@@ -79,7 +79,7 @@
                 android:checked="@={viewModel.isFavorite}"
                 android:clickable="true"
                 android:padding="8dp"
-                app:buttonTint="@color/primary_dark"
+                app:buttonTint="@color/star_tint"
                 android:focusable="true"/>
 
             <!--
