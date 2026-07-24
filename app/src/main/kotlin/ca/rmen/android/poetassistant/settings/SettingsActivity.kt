@@ -86,84 +86,16 @@ open class SettingsActivityImpl : AppCompatActivity() {
 @AndroidEntryPoint
 class GeneralPreferenceFragment : GeneralPreferenceFragmentImpl()
 
-open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat(), ConfirmDialogFragment.ConfirmDialogListener {
-    companion object {
-        private const val DIALOG_TAG = "dialog_tag"
-        private const val ACTION_EXPORT_FAVORITES = 1
-        private const val ACTION_IMPORT_FAVORITES = 2
-        private const val ACTION_CLEAR_SEARCH_HISTORY = 3
-        @VisibleForTesting
-        const val PREF_CATEGORY_VOICE = "PREF_CATEGORY_VOICE"
-        private const val PREF_CATEGORY_NOTIFICATIONS = "PREF_CATEGORY_NOTIFICATIONS"
-        private const val PREF_EXPORT_FAVORITES = "PREF_EXPORT_FAVORITES"
-        private const val PREF_IMPORT_FAVORITES = "PREF_IMPORT_FAVORITES"
-        private const val PREF_CLEAR_SEARCH_HISTORY = "PREF_CLEAR_SEARCH_HISTORY"
-    }
-
-    @Inject lateinit var mPrefs: SettingsPrefs
-    private lateinit var mViewModel: SettingsViewModel
-
+open class GeneralPreferenceFragmentImpl : PreferenceFragmentCompat() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        context?.let {
-            mViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
-            mViewModel.snackbarText.observe(this, mSnackbarCallback)
-        }
+        // Instantiate the view model so its SettingsChangeListener is registered (e.g. to restart
+        // the activity when the theme changes).
+        ViewModelProvider(this).get(SettingsViewModel::class.java)
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        loadPreferences()
+        addPreferencesFromResource(R.xml.pref_general)
     }
-
-    private fun loadPreferences() {
-        context?.let {
-            addPreferencesFromResource(R.xml.pref_general)
-            setOnPreferenceClickListener(PREF_EXPORT_FAVORITES, Runnable { startActivityForResult(mViewModel.getExportFavoritesIntent(), ACTION_EXPORT_FAVORITES) })
-            setOnPreferenceClickListener(PREF_IMPORT_FAVORITES, Runnable { startActivityForResult(mViewModel.getImportFavoritesIntent(), ACTION_IMPORT_FAVORITES) })
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.d(TAG, "onActivityResult: requestCode=$requestCode, resultCode=$resultCode, data=$data")
-        val uri = data?.data
-        if (requestCode == ACTION_EXPORT_FAVORITES && resultCode == Activity.RESULT_OK && uri != null) {
-            mViewModel.exportFavorites(uri)
-        } else if (requestCode == ACTION_IMPORT_FAVORITES && resultCode == Activity.RESULT_OK && uri != null) {
-            mViewModel.importFavorites(uri)
-        }
-    }
-
-    override fun onOk(actionId: Int) = Unit
-
-
-    private fun removePreferences(categoryKey: String, vararg preferenceKeys: String) {
-        preferenceKeys.forEach { removePreference(categoryKey, findPreference(it)!!) }
-    }
-
-    private fun removePreference(categoryKey: String, preference: Preference) {
-        val category = preferenceScreen.findPreference<Preference>(categoryKey)!! as PreferenceCategory
-        category.removePreference(preference)
-    }
-
-    private fun setOnPreferenceClickListener(preferenceKey: String, runnable: Runnable) {
-        setOnPreferenceClickListener(findPreference<Preference>(preferenceKey)!!, runnable)
-    }
-
-    private fun setOnPreferenceClickListener(preference: Preference, runnable: Runnable) {
-        preference.setOnPreferenceClickListener {
-            runnable.run()
-            false
-        }
-    }
-
-    private val mSnackbarCallback = Observer<String> { snackbarText ->
-        view?.let {
-            if (!TextUtils.isEmpty(snackbarText)) {
-                Snackbar.make(it, snackbarText!!, Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-
 }
 

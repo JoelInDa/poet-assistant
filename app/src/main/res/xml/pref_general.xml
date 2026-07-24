@@ -62,17 +62,5 @@
 
 
     </PreferenceCategory>
-    <PreferenceCategory
-        android:key="PREF_CATEGORY_USER_DATA"
-        android:title="@string/pref_category_user_data">
-        <Preference
-            android:icon="@drawable/ic_settings_export_favorites"
-            android:key="PREF_EXPORT_FAVORITES"
-            android:title="@string/action_export_favorites"/>
-        <Preference
-            android:icon="@drawable/ic_settings_import_favorites"
-            android:key="PREF_IMPORT_FAVORITES"
-            android:title="@string/action_import_favorites"/>
-    </PreferenceCategory>
 
 </PreferenceScreen>

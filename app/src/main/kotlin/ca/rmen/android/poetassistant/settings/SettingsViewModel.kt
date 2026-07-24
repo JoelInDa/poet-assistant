@@ -19,18 +19,9 @@
 
 package ca.rmen.android.poetassistant.settings
 
-import android.annotation.TargetApi
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import androidx.preference.PreferenceManager
-import ca.rmen.android.poetassistant.Favorites
-import ca.rmen.android.poetassistant.R
-import ca.rmen.android.poetassistant.FileUtils
-import ca.rmen.android.poetassistant.Threading
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.Dictionary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -38,47 +29,14 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     application: Application,
-    private val mFavorites: Favorites,
-    private val mThreading: Threading,
-    private val dictionary: Dictionary,
-    private val settingsPrefs: SettingsPrefs,
+    dictionary: Dictionary,
+    settingsPrefs: SettingsPrefs,
 ) : AndroidViewModel(application) {
 
-    val snackbarText = MutableLiveData<String>()
     private val mListener: SettingsChangeListener = SettingsChangeListener(application, dictionary, settingsPrefs)
 
     init {
         PreferenceManager.getDefaultSharedPreferences(application).registerOnSharedPreferenceChangeListener(mListener)
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    fun getExportFavoritesIntent(): Intent =
-        Intent(Intent.ACTION_CREATE_DOCUMENT)
-            .addCategory(Intent.CATEGORY_OPENABLE)
-            .setType("text/plain")
-            .putExtra(
-                Intent.EXTRA_TITLE,
-                getApplication<Application>().getString(R.string.export_favorites_default_filename)
-            )
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    fun getImportFavoritesIntent(): Intent =
-        Intent(Intent.ACTION_OPEN_DOCUMENT)
-            .addCategory(Intent.CATEGORY_OPENABLE)
-            .setType("text/plain")
-
-    fun exportFavorites(uri: Uri) {
-        val fileDisplayName = FileUtils.readDisplayName(getApplication(), uri)
-        mThreading.execute({ mFavorites.exportFavorites(getApplication(), uri) },
-            { snackbarText.value = getApplication<Application>().getString(R.string.export_favorites_success, fileDisplayName) },
-            { snackbarText.value = getApplication<Application>().getString(R.string.export_favorites_error, fileDisplayName) })
-    }
-
-    fun importFavorites(uri: Uri) {
-        val fileDisplayName = FileUtils.readDisplayName(getApplication(), uri)
-        mThreading.execute({ mFavorites.importFavorites(getApplication(), uri) },
-            { snackbarText.value = getApplication<Application>().getString(R.string.import_favorites_success, fileDisplayName) },
-            { snackbarText.value = getApplication<Application>().getString(R.string.import_favorites_error, fileDisplayName) })
     }
 
     override fun onCleared() {
