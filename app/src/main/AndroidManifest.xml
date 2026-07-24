@@ -20,10 +20,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT" />
-            <data android:mimeType="text/plain" />
-        </intent>
         <!-- Package visibility for the voice search button: lets us resolve (and hide
              the mic when there is no) speech recognizer. Required from API 30 up. -->
         <intent>
@@ -86,47 +82,6 @@
                     android:scheme="poetassistant" />
             </intent-filter>
 
-        </activity>
-        <activity android:name=".main.dictionaries.search.RhymerRouterActivity"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:label="@string/tab_rhymer"
-            android:exported="true">
-            <intent-filter android:icon="@drawable/ic_rhymer" android:label="@string/tab_rhymer">
-                <action android:name="android.intent.action.PROCESS_TEXT"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-            <!--
-                Add this intent-filter as a workaround to make the PROCESS_TEXT
-                intent-filter work in Google apps (ex: chrome, keep, ...).
-                https://stackoverflow.com/a/72930519/1204440
-                Note: we only need to add it to one of the three activities, and
-                this will make PROCESS_TEXT work in all three.
-            -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <data android:scheme="https" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".main.dictionaries.search.ThesaurusRouterActivity"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:label="@string/tab_thesaurus"
-            android:exported="true">
-            <intent-filter android:icon="@drawable/ic_thesaurus" android:label="@string/tab_thesaurus">
-                <action android:name="android.intent.action.PROCESS_TEXT"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".main.dictionaries.search.DictionaryRouterActivity"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:label="@string/tab_dictionary"
-            android:exported="true">
-            <intent-filter android:icon="@drawable/ic_dictionary" android:label="@string/tab_dictionary">
-                <action android:name="android.intent.action.PROCESS_TEXT"/>
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/plain" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".about.AboutActivity"

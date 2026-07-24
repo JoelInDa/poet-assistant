@@ -35,14 +35,10 @@ import ca.rmen.android.poetassistant.databinding.ResultListHeaderBinding
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import ca.rmen.android.poetassistant.main.Tab
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryEntry
-import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.DictionaryLiveData
-import ca.rmen.android.poetassistant.main.dictionaries.rt.FavoritesListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.FavoritesLiveData
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RTEntryViewModel
-import ca.rmen.android.poetassistant.main.dictionaries.rt.RhymerListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RhymerLiveData
-import ca.rmen.android.poetassistant.main.dictionaries.rt.ThesaurusListExporter
 import ca.rmen.android.poetassistant.main.dictionaries.rt.ThesaurusLiveData
 import dagger.hilt.android.EntryPointAccessors
 
@@ -99,14 +95,6 @@ object ResultListFactory {
         }
     }
 
-    fun createExporter(context: Context, tab: Tab): ResultListExporter<*> {
-        return when (tab) {
-            Tab.FAVORITES -> FavoritesListExporter(context)
-            Tab.RHYMER -> RhymerListExporter(context)
-            Tab.THESAURUS -> ThesaurusListExporter(context)
-            Tab.DICTIONARY -> DictionaryListExporter(context)
-        }
-    }
 
     fun getEmptyListText(context: Context, tab: Tab, query: String): String {
         return when (tab) {

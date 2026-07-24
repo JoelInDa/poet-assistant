@@ -29,9 +29,7 @@ import java.lang.reflect.Modifier;
 import ca.rmen.android.poetassistant.compat.HtmlCompat;
 import ca.rmen.android.poetassistant.compat.VectorCompat;
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListFactory;
-import ca.rmen.android.poetassistant.main.dictionaries.Share;
 import ca.rmen.android.poetassistant.main.dictionaries.rt.RTUtils;
-import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter;
 import ca.rmen.android.poetassistant.widget.PopupMenuHelper;
 
 import static org.junit.Assert.assertNotNull;
@@ -54,20 +52,12 @@ public class TestUtilityClasses {
         assertUtilityClassVisibility(AppBarLayoutHelper.class);
     }
 
-    @Test
-    public void testTextPopupMenu() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(TextPopupMenu.class);
-    }
 
     @Test
     public void testResultListFactory() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         assertUtilityClassVisibility(ResultListFactory.class);
     }
 
-    @Test
-    public void testShare() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(Share.class);
-    }
 
     @Test
     public void testRTUtils() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
@@ -75,10 +65,6 @@ public class TestUtilityClasses {
     }
 
 
-    @Test
-    public void testProcessTextRouter() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        assertUtilityClassVisibility(ProcessTextRouter.class);
-    }
 
     @Test
     public void testPopupMenuHelper() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {

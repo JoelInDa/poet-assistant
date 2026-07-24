@@ -30,7 +30,7 @@ open class ResultListAdapterFactoryImpl : ResultListAdapterFactory {
     override fun createAdapter(activity: Activity, tab: Tab): ResultListAdapter<out Any> {
         return when (tab) {
             Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> RTListAdapter(tab, activity)
-            Tab.DICTIONARY -> DictionaryListAdapter(activity as OnWordClickListener)
+            Tab.DICTIONARY -> DictionaryListAdapter()
         }
     }
 }

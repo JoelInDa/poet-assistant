@@ -79,12 +79,6 @@ class ResultListViewModel<T: Any> constructor(
         mAdapter = adapter
     }
 
-    fun share(query: String) {
-        mAdapter?.let {
-            Share.share(getApplication(), tab, query, null, it.getAll())
-        }
-    }
-
     fun setData(loadedData: ResultListData<T>?) {
         Log.v(TAG, "$tab: setData adapter=$mAdapter, data=$loadedData")
         mAdapter?.let {

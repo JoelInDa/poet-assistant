@@ -22,10 +22,9 @@ package ca.rmen.android.poetassistant.main.dictionaries.dictionary
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.idling.CountingIdlingResource
 import ca.rmen.android.poetassistant.ResultListIdlingHelper
-import ca.rmen.android.poetassistant.main.dictionaries.rt.OnWordClickListener
 
-class InstrumentationDictionaryListAdapter(listener: OnWordClickListener)
-    : DictionaryListAdapter(listener) {
+class InstrumentationDictionaryListAdapter
+    : DictionaryListAdapter() {
     private val countingIdlingResource: CountingIdlingResource = CountingIdlingResource("DictionaryResultIdlingResource", true)
 
     init {

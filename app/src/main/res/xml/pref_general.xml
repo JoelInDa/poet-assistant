@@ -60,12 +60,6 @@
             android:summary="@string/pref_theme_summary"
             android:title="@string/pref_theme_title"/>
 
-        <!--suppress AndroidElementNotAllowed -->
-        <androidx.preference.SwitchPreferenceCompat
-            android:defaultValue="true"
-            android:key="PREF_SELECTION_LOOKUP"
-            android:summary="@string/pref_selection_lookup_summary"
-            android:title="@string/pref_selection_lookup_title"/>
 
     </PreferenceCategory>
     <PreferenceCategory

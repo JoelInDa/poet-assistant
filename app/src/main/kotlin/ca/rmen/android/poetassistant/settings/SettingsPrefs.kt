@@ -31,7 +31,6 @@ class SettingsPrefs(application: Application) {
         const val THEME_LIGHT = "Light"
         const val THEME_DARK = "Dark"
         const val PREF_THEME = "PREF_THEME"
-        const val PREF_SELECTION_LOOKUP = "PREF_SELECTION_LOOKUP"
         private const val PREF_ALL_RHYMES_ENABLED = "PREF_ALL_RHYMES_ENABLED"
         private const val PREF_MATCH_AO_AA_ENABLED = "PREF_MATCH_AO_AA_ENABLED"
         private const val PREF_MATCH_AOR_AO_ENABLED = "PREF_MATCH_AOR_AO_ENABLED"
@@ -49,14 +48,6 @@ class SettingsPrefs(application: Application) {
         }
         set(newValue) {
             sharedPreferences.edit().putString(PREF_THEME, newValue).apply()
-        }
-
-    var isSelectionLookupEnabled: Boolean
-        get () {
-            return sharedPreferences.getBoolean(PREF_SELECTION_LOOKUP, true)
-        }
-        set(newValue) {
-            sharedPreferences.edit().putBoolean(PREF_SELECTION_LOOKUP, newValue).apply()
         }
 
     var isAllRhymesEnabled: Boolean

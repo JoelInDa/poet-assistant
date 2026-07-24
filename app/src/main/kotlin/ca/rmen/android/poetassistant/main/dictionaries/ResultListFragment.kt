@@ -144,20 +144,6 @@ class ResultListFragment<out T: Any> : Fragment() {
         super.onDestroyView()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_share) {
-            mHeaderViewModel.query.get()?.let {
-                mViewModel.share(it)
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_share).isEnabled = mViewModel.isDataAvailable.get()
-    }
-
     private fun queryFromArguments() {
         Log.v(TAG, "$mTab: queryFromArguments: $arguments")
         arguments?.let {

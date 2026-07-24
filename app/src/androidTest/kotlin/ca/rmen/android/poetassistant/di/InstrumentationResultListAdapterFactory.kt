@@ -36,7 +36,7 @@ class InstrumentationResultListAdapterFactory : ResultListAdapterFactory {
     override fun createAdapter(activity: Activity, tab: Tab): ResultListAdapter<out Any> {
         return when (tab) {
             Tab.FAVORITES, Tab.RHYMER, Tab.THESAURUS -> InstrumentationRTListAdapter(tab, activity)
-            Tab.DICTIONARY -> InstrumentationDictionaryListAdapter(activity as OnWordClickListener)
+            Tab.DICTIONARY -> InstrumentationDictionaryListAdapter()
         }
     }
 }

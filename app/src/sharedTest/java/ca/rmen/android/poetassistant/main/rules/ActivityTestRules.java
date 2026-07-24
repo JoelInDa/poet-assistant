@@ -39,7 +39,6 @@ import ca.rmen.android.poetassistant.Theme;
 import ca.rmen.android.poetassistant.Threading;
 import ca.rmen.android.poetassistant.UserDb;
 import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb;
-import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter;
 import ca.rmen.android.poetassistant.settings.SettingsPrefs;
 import dagger.hilt.EntryPoint;
 import dagger.hilt.InstallIn;
@@ -69,7 +68,6 @@ public final class ActivityTestRules {
            IdlingRegistry.getInstance().register(threadingCountingIdlingResource);
         }
         cleanup(targetContext);
-        ProcessTextRouter.INSTANCE.setEnabled(targetContext, true);
     }
 
     public static void afterActivityFinished(Context targetContext) {

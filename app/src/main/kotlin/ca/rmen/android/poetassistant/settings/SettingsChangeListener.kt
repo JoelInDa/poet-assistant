@@ -27,7 +27,6 @@ import android.util.Log
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.Theme
 import ca.rmen.android.poetassistant.main.dictionaries.dictionary.Dictionary
-import ca.rmen.android.poetassistant.main.dictionaries.search.ProcessTextRouter
 
 class SettingsChangeListener(
     private val context: Context,
@@ -43,11 +42,6 @@ class SettingsChangeListener(
             // When the theme changes, restart the activity
             SettingsPrefs.PREF_THEME -> {
                 Theme.setThemeFromSettings(settingsPrefs)
-                restartSettingsActivity()
-            }
-
-            SettingsPrefs.PREF_SELECTION_LOOKUP -> {
-                ProcessTextRouter.setEnabled(context, settingsPrefs.isSelectionLookupEnabled)
                 restartSettingsActivity()
             }
         }
