@@ -39,6 +39,7 @@ import android.view.MenuItem
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.updatePadding
 import androidx.lifecycle.ViewModelProvider
 import ca.rmen.android.poetassistant.BuildConfig
@@ -59,6 +60,8 @@ import ca.rmen.android.poetassistant.settings.SettingsActivity
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import ca.rmen.android.poetassistant.widget.CABEditText
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.Serializable
+import java.util.Locale
 import javax.inject.Inject
 
 // Split into separate impl and base class to get full code coverage stats:
@@ -71,7 +74,12 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
     companion object {
         private val TAG = Constants.TAG + MainActivity::class.java.simpleName
         private const val DIALOG_TAG = "dialog"
+        private const val STATE_HISTORY = "nav_history"
+        private const val STATE_CURRENT = "nav_current"
     }
+
+    /** One step of navigation history: a word viewed in a particular tool (tab). */
+    private data class NavState(val word: String, val tab: Tab) : Serializable
 
     private lateinit var mSearch: Search
     private lateinit var mBinding: ActivityMainBinding
@@ -82,6 +90,16 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
     @Inject lateinit var mDictionary: Dictionary
     @Inject lateinit var mFavorites: Favorites
     @Inject lateinit var mThreading: Threading
+
+    // Back navigation walks through the (word, tool) pairs the user actually looked at, so
+    // e.g. "slob"/dictionary -> "slob"/rhymer -> "bob"/rhymer -> "blob"/rhymer -> "blob"/thesaurus.
+    // mCurrent is the state on screen now; mHistory holds the earlier states, newest last.
+    private val mHistory = ArrayDeque<NavState>()
+    private var mCurrent: NavState? = null
+    // Set while we drive the pager/search ourselves (a tap, a Back, a restore) so those changes
+    // aren't mistaken for user navigation and recorded again.
+    private var mSuppressHistory = false
+    private lateinit var mBackCallback: OnBackPressedCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: savedInstanceState = $savedInstanceState")
@@ -107,10 +125,21 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         }
         mAdapterChangeListener.onChanged()
 
+        // Back walks through the (word, tool) history; when it's empty, Back falls through to exit.
+        mBackCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() = goBack()
+        }
+        onBackPressedDispatcher.addCallback(this, mBackCallback)
+        restoreHistory(savedInstanceState)
+
         // If the app was launched with a query for the a particular tab, focus on that tab.
         if (intent.data?.host != null) {
             val tab = Tab.parse(intent.data!!.host!!) ?: Tab.DICTIONARY
             mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(tab), false)
+            // Seed the current state so a later swipe is recorded relative to the launch word.
+            if (mCurrent == null) {
+                intent.data?.lastPathSegment?.let { mCurrent = NavState(it.trim().lowercase(Locale.US), tab) }
+            }
         }
 
         mSearch = Search(this, mBinding.viewPager, dictionary = mDictionary, threading = mThreading)
@@ -136,7 +165,23 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
                 top = insets.top,
             )
         }
-        mSearch.setSearchView(mBinding.searchView)
+        mSearch.setSearchView(mBinding.searchView) { navigateToWord(it) }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun restoreHistory(savedInstanceState: Bundle?) {
+        savedInstanceState ?: return
+        (savedInstanceState.getSerializable(STATE_HISTORY) as? ArrayList<NavState>)?.let {
+            mHistory.addAll(it)
+        }
+        mCurrent = savedInstanceState.getSerializable(STATE_CURRENT) as? NavState
+        mBackCallback.isEnabled = mHistory.isNotEmpty()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(STATE_HISTORY, ArrayList(mHistory))
+        outState.putSerializable(STATE_CURRENT, mCurrent)
     }
 
     override fun onResume() {
@@ -195,18 +240,16 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             if (!userQuery.isNullOrEmpty()) query = userQuery.toString()
         }
         if (TextUtils.isEmpty(query)) return
-        mSearch.search(query!!)
+        navigateToWord(query!!)
     }
     private fun handleDeepLink(uri: Uri?) {
         Log.d(TAG, "handleDeepLink, uri=$uri")
         if (uri == null) return
-        val word = uri.lastPathSegment
+        val word = uri.lastPathSegment ?: return
         if (Constants.DEEP_LINK_QUERY == uri.host) {
-            mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(Tab.DICTIONARY), false)
-            word?.let { mSearch.search(it)}
-        } else if (uri.host != null && word != null) {
-            val tab = Tab.parse(uri.host!!)
-            tab?.let {mSearch.search(word, it)}
+            navigateTo(word, Tab.DICTIONARY)
+        } else if (uri.host != null) {
+            Tab.parse(uri.host!!)?.let { navigateTo(word, it) }
         }
     }
 
@@ -223,7 +266,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
                 return true
             }
             R.id.action_random_word -> {
-                mSearch.lookupRandom()
+                mSearch.lookupRandom { navigateTo(it, Tab.DICTIONARY) }
                 return true
             }
             R.id.action_settings -> {
@@ -242,7 +285,56 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
 
     override fun onWordClick(word: String, tab: Tab) {
         Log.v(TAG, "onWordClick: word=$word, tab=$tab")
-        mSearch.search(word, tab)
+        navigateTo(word, tab)
+    }
+
+    /**
+     * Show [word] in [tab]. Every lookup tab is loaded with the word (so swiping between tools
+     * always shows the current word), and [tab] is brought to the front. Records a history step.
+     */
+    private fun navigateTo(word: String, tab: Tab) {
+        val trimmed = word.trim().lowercase(Locale.US)
+        if (trimmed.isEmpty()) return
+        mSuppressHistory = true
+        mSearch.search(trimmed)
+        mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(tab), false)
+        mSuppressHistory = false
+        pushHistory(NavState(trimmed, tab))
+    }
+
+    /** Show [word], staying in whatever tool the search lands on. Records a history step. */
+    private fun navigateToWord(word: String) {
+        val trimmed = word.trim().lowercase(Locale.US)
+        if (trimmed.isEmpty()) return
+        mSuppressHistory = true
+        mSearch.search(trimmed)
+        mSuppressHistory = false
+        pushHistory(NavState(trimmed, currentTab()))
+    }
+
+    private fun currentTab(): Tab = mPagerAdapter.getTabForPosition(mBinding.viewPager.currentItem)
+
+    /** Record a move to [next], unless we're driving navigation ourselves or nothing changed. */
+    private fun pushHistory(next: NavState) {
+        if (mSuppressHistory || next == mCurrent) return
+        mCurrent?.let { mHistory.addLast(it) }
+        mCurrent = next
+        mBackCallback.isEnabled = mHistory.isNotEmpty()
+    }
+
+    /** Restore the previous (word, tool) without recording it. */
+    private fun goBack() {
+        val prev = mHistory.removeLastOrNull()
+        if (prev == null) {
+            mBackCallback.isEnabled = false
+            return
+        }
+        mSuppressHistory = true
+        mSearch.search(prev.word)
+        mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(prev.tab), false)
+        mSuppressHistory = false
+        mCurrent = prev
+        mBackCallback.isEnabled = mHistory.isNotEmpty()
     }
 
     override fun onWarningNoSpaceDialogDismissed() {
@@ -264,6 +356,9 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
 
             AppBarLayoutHelper.forceExpandAppBarLayout(mBinding.appBarLayout)
             mPrefs.tab = tab.name
+
+            // A user swipe to another tool, keeping the current word, is its own history step.
+            mCurrent?.word?.let { word -> pushHistory(NavState(word, tab)) }
         }
     }
 

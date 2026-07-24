@@ -22,6 +22,7 @@ package ca.rmen.android.poetassistant.main;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
@@ -88,8 +89,8 @@ public class ShareTest {
     @Test
     public void shareFavoritesTest() {
         search("happy");
-        onView(allOf(withId(R.id.btn_star_result), isDisplayed(), hasSibling(withText("snappy")))).perform(click());
-        onView(allOf(withId(R.id.btn_star_result), isDisplayed(), hasSibling(withText("crappy")))).perform(click());
+        onView(allOf(withText("snappy"), isDisplayed())).perform(longClick());
+        onView(allOf(withText("crappy"), isDisplayed())).perform(longClick());
         swipeViewPagerLeft(4);
         openMenuItem(R.string.share);
         checkShareIntentContains("snappy");

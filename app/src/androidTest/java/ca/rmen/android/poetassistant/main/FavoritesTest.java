@@ -22,6 +22,7 @@ package ca.rmen.android.poetassistant.main;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.matcher.ViewMatchers.hasSibling;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -64,14 +65,15 @@ public class FavoritesTest {
         Context context = mActivityTestRule.getActivity();
         search("cheesecake");
         starQueryWord();
-        onView(allOf(withId(R.id.btn_star_result), hasSibling(withText("ache")))).perform(click());
+        // Favoriting is a long-press on the word pill now (per-row star removed).
+        onView(allOf(withText("ache"), isDisplayed())).perform(longClick());
         swipeViewPagerLeft(4);
         checkAllStarredWords(context, "cheesecake", "ache");
         swipeViewPagerRight(3);
         unStarQueryWord();
         swipeViewPagerLeft(3);
         checkAllStarredWords(context, "ache");
-        onView(allOf(withId(R.id.btn_star_result), hasSibling(withText("ache")), isDisplayed())).perform(click());
+        onView(allOf(withText("ache"), isDisplayed())).perform(longClick());
         checkAllStarredWords(context);
         swipeViewPagerRight(2);
         starQueryWord();

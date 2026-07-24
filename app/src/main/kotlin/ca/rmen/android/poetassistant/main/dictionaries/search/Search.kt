@@ -56,33 +56,25 @@ class Search constructor(
         mPagerAdapter = viewPager.adapter as PagerAdapter
     }
 
-    fun setSearchView(searchView: SearchView) {
+    /**
+     * @param onSearch invoked with the entered term when the user submits a search. The caller
+     * (MainActivity) performs the navigation so it can record it in the back-stack.
+     */
+    fun setSearchView(searchView: SearchView, onSearch: (String) -> Unit) {
         searchView.hint =
             searchableActivity.getString(R.string.search_hint) // To hopefully prevent some crashes (!!) :(
         // Handle when the user taps enter from the search widget
         searchView.editText.setOnEditorActionListener { _, _, _ ->
             val searchTerm = searchView.editText.text.toString()
             searchView.hide()
-            if (searchTerm.isNotBlank()) search(searchTerm)
+            if (searchTerm.isNotBlank()) onSearch(searchTerm)
             false
         }
     }
 
     /**
-     * Search for the given word in the given dictionary, and set the current tab
-     * to that dictionary (if it's not already the case).
-     */
-    fun search(word: String, tab: Tab) {
-        Log.d(TAG, "search in $tab for $ word")
-        viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(tab), false)
-        ViewShownScheduler.runWhenShown(viewPager) {
-            (mPagerAdapter.getFragment(viewPager, tab) as ResultListFragment<*>?)?.query(word.trim()
-                .lowercase(Locale.US))
-        }
-    }
-
-    /**
-     * Search for the given word in all dictionaries
+     * Search for the given word in all dictionaries. MainActivity picks which tool to show and
+     * records the move; this just loads the word everywhere so swiping between tools is instant.
      */
     fun search(word: String) {
         Log.d(TAG, "search called with $word")
@@ -109,19 +101,14 @@ class Search constructor(
     }
 
     /**
-     * Lookup a random word. Update the view pager tabs with the results of this word.
+     * Pick a random word in the background and hand it back to [onWord] on the main thread. The
+     * caller navigates to it (in the dictionary), so the move is recorded in the back-stack.
      */
-
-    fun lookupRandom() {
+    fun lookupRandom(onWord: (String) -> Unit) {
         Log.d(TAG, "lookupRandom")
         threading.execute(
                 { dictionary.getRandomEntry() },
-                { entry ->
-                    entry?.let {
-                        search(entry.word)
-                        viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(Tab.DICTIONARY), false)
-                    }
-                }
+                { entry -> entry?.let { onWord(it.word) } }
         )
     }
 }
