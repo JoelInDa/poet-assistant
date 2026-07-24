@@ -10,3 +10,6 @@
 signing.properties
 etc/apk
 app/schemas
+
+# Claude Code local settings
+.claude/settings.local.json
