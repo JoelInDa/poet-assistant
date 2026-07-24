@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Carmen Alvarez
+ * Copyright (c) 2016 - present Carmen Alvarez
  *
  * This file is part of Poet Assistant.
  *
@@ -19,23 +19,18 @@
 
 package ca.rmen.android.poetassistant.shared.main;
 
-
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.longClick;
-import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.endsWith;
-import static ca.rmen.android.poetassistant.main.CustomChecks.checkClipboard;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.addFilter;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.clickDialogPositiveButton;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.openFilter;
-import static ca.rmen.android.poetassistant.main.TestAppUtils.search;
+import static org.hamcrest.Matchers.not;
 
-import android.content.Context;
+import static ca.rmen.android.poetassistant.main.CustomViewMatchers.isActivated;
+import static ca.rmen.android.poetassistant.main.TestAppUtils.search;
 
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -48,17 +43,23 @@ import org.robolectric.annotation.Config;
 
 import ca.rmen.android.poetassistant.R;
 import ca.rmen.android.poetassistant.main.MainActivity;
-import ca.rmen.android.poetassistant.main.Tab;
 import ca.rmen.android.poetassistant.main.rules.PoetAssistantActivityTestRule;
 import dagger.hilt.android.testing.HiltAndroidRule;
 import dagger.hilt.android.testing.HiltAndroidTest;
 import dagger.hilt.android.testing.HiltTestApplication;
 
+/**
+ * The M2 redesign made favoriting a word a long-press on its pill (a plain tap navigates). A
+ * favorited word is shown with a gold border, driven by the view's {@code activated} state.
+ * Favorites no longer appear as a section inside the rhymer/thesaurus lists (only on the dedicated
+ * favorites tab), so a rhyme appears exactly once here and its activated state is an unambiguous
+ * signal that the long-press toggled the favorite.
+ */
 @LargeTest
 @HiltAndroidTest
 @Config(application = HiltTestApplication.class)
 @RunWith(AndroidJUnit4.class)
-public class IntegrationTest {
+public class FavoriteWordTest {
 
     @Rule(order = 0)
     public HiltAndroidRule hiltTestRule = new HiltAndroidRule(this);
@@ -66,14 +67,25 @@ public class IntegrationTest {
     @Rule(order = 1)
     public PoetAssistantActivityTestRule<MainActivity> mActivityTestRule = new PoetAssistantActivityTestRule<>(MainActivity.class, true);
 
-
+    private ViewInteraction rhyme(String word) {
+        return onView(allOf(withId(R.id.text1), withText(word),
+                isDescendantOfA(withId(R.id.rhymer_recycler_view)), isDisplayed()));
+    }
 
     @Test
-    public void saveFilterTest() {
-        search("pugnacious");
-        addFilter(Tab.RHYMER, "vulturous", "rapacious");
-        ViewInteraction filterView = openFilter("vulturous");
-        filterView.perform(closeSoftKeyboard());
-        clickDialogPositiveButton(android.R.string.ok);
+    public void longPressFavoritesWord() {
+        search("donkey");
+        rhyme("swanky").check(matches(not(isActivated())));
+        rhyme("swanky").perform(longClick());
+        rhyme("swanky").check(matches(isActivated()));
+    }
+
+    @Test
+    public void longPressAgainRemovesFavorite() {
+        search("donkey");
+        rhyme("swanky").perform(longClick());
+        rhyme("swanky").check(matches(isActivated()));
+        rhyme("swanky").perform(longClick());
+        rhyme("swanky").check(matches(not(isActivated())));
     }
 }

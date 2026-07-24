@@ -101,13 +101,11 @@ public class TestAppUtils {
         getInstrumentation().waitForIdleSync();
     }
 
+    // The per-row R/T/D icons are gone (M2 pill redesign). Cross-mode lookup is now: tap the
+    // word to search it in the current mode, then move to the target mode. Both helpers therefore
+    // behave like their former "clean layout" counterparts.
     public static void openThesaurus(Context context, String entry, String expectedFirstSynonym) {
-        onView(allOf(withId(R.id.btn_thesaurus),
-                hasSibling(withText(entry)),
-                isDisplayed()))
-                .perform(click());
-        CustomChecks.checkFirstSynonym(expectedFirstSynonym);
-        checkTitleStripOrTab(context, R.string.tab_thesaurus);
+        openThesaurusCleanLayout(context, entry, expectedFirstSynonym);
     }
 
     public static void openThesaurusCleanLayout(Context context, String entry, String expectedFirstSynonym) {
@@ -118,12 +116,7 @@ public class TestAppUtils {
     }
 
     public static void openDictionary(Context context, String entry, String expectedFirstDefinition) {
-        onView(allOf(withId(R.id.btn_dictionary),
-                hasSibling(withText(entry)),
-                isDisplayed()))
-                .perform(click());
-        checkTitleStripOrTab(context, R.string.tab_dictionary);
-        CustomChecks.checkFirstDefinition(expectedFirstDefinition);
+        openDictionaryCleanLayout(context, entry, expectedFirstDefinition);
     }
 
     public static void openDictionaryCleanLayout(Context context, String entry, String expectedFirstDefinition) {
@@ -176,9 +169,10 @@ public class TestAppUtils {
         } else {
             onView(allOf(withId(R.id.empty), hasSibling(allOf(withId(recyclerViewId), isDisplayed()))))
                     .check(matches(not(isDisplayed())));
+            // Pills are direct children of the recycler view now (was text -> row -> recycler).
             onView(allOf(withId(R.id.text1),
                     withText(firstExpectedFilteredMatch),
-                    withParent(withParent(withId(recyclerViewId))),
+                    withParent(withId(recyclerViewId)),
                     isDisplayed()))
                     .check(matches(withText(firstExpectedFilteredMatch)));
         }

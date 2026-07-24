@@ -203,6 +203,7 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.preference)
     implementation(libs.androidx.room.runtime)
+    implementation(libs.flexbox)
     implementation(libs.google.material)
     implementation(libs.hilt.android)
     implementation(libs.kotlin)

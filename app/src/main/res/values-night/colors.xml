@@ -45,4 +45,10 @@
     <color name="app_bar">#1B2429</color>
     <color name="tab_default">#8A9BA5</color>
     <color name="tab_selected">#EDEDED</color>
+    <!-- result word pill -->
+    <color name="chip_fill">#1C2429</color>
+    <color name="chip_stroke">#37474F</color>
+    <!-- favorited pill: bright gold border + faint gold wash on the dark fill -->
+    <color name="chip_fill_favorite">#2A2415</color>
+    <color name="chip_favorite_stroke">#FFC947</color>
 </resources>

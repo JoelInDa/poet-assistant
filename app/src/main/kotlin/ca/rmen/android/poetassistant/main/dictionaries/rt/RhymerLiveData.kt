@@ -31,7 +31,6 @@ import ca.rmen.android.poetassistant.main.dictionaries.ResultListLiveData
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import ca.rmen.rhymer.RhymeResult
 import dagger.hilt.android.EntryPointAccessors
-import java.util.TreeSet
 
 class RhymerLiveData(context: Context, val query: String, val filter: String?) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
 
@@ -93,10 +92,10 @@ class RhymerLiveData(context: Context, val query: String, val filter: String?) :
         }
 
         val layout = SettingsPrefs.getLayout(mPrefs)
+        // The favorite set is still used to flag matching words (their pills get the gold
+        // border), but favorites are no longer duplicated into their own section here: they
+        // live only on the dedicated favorites tab.
         val favorites = mFavorites.getFavorites()
-        if (favorites.isNotEmpty()) {
-            addResultSection(favorites, data, R.string.rhyme_section_favorites, getMatchingFavorites(rhymeResults, favorites), layout)
-        }
         rhymeResults.forEach {
             // Add the word variant, if there are multiple pronunciations.
             if (rhymeResults.size > 1) {
@@ -112,17 +111,6 @@ class RhymerLiveData(context: Context, val query: String, val filter: String?) :
         val after = System.currentTimeMillis()
         Log.d(TAG, "loadInBackground finished in ${(after - before)} ms")
         return result
-    }
-
-    private fun getMatchingFavorites(rhymeResults: List<RhymeResult>, favorites: Set<String>): Array<String> {
-        val matchingFavorites = TreeSet<String>()
-        rhymeResults.forEach { rhymeResult ->
-            matchingFavorites.addAll(rhymeResult.strictRhymes.filter { rhyme -> favorites.contains(rhyme) })
-            matchingFavorites.addAll(rhymeResult.oneSyllableRhymes.filter { rhyme -> favorites.contains(rhyme) })
-            matchingFavorites.addAll(rhymeResult.twoSyllableRhymes.filter { rhyme -> favorites.contains(rhyme) })
-            matchingFavorites.addAll(rhymeResult.threeSyllableRhymes.filter { rhyme -> favorites.contains(rhyme) })
-        }
-        return matchingFavorites.toTypedArray()
     }
 
     private fun emptyResult(): ResultListData<RTEntryViewModel> {

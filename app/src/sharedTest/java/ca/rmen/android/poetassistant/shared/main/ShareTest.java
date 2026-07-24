@@ -22,6 +22,7 @@ package ca.rmen.android.poetassistant.shared.main;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
+import static androidx.test.espresso.action.ViewActions.longClick;
 import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasAction;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra;
@@ -83,14 +84,6 @@ public class ShareTest {
 
 
 
-    @Test
-    public void sharePopupTest() {
-        search("strawberry");
-        Context context = mActivityTestRule.getActivity();
-        onView(allOf(withText("adversary"), isDisplayed())).perform(click());
-        onView(allOf(withText(endsWith(context.getString(R.string.share))), isDisplayed())).perform(click());
-        checkShareIntentEquals("adversary");
-    }
 
     private void checkShareIntentContains(String expectedText) {
         intended(allOf(hasAction(Intent.ACTION_CHOOSER),

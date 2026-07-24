@@ -37,6 +37,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.JustifyContent
 import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.Favorite
 import ca.rmen.android.poetassistant.R
@@ -73,8 +76,18 @@ class ResultListFragment<out T: Any> : Fragment() {
         mTab?.let {
             Log.v(TAG, "$mTab onCreateView")
             mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_result_list, container, false)
-            mBinding.recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-            mBinding.recyclerView.setHasFixedSize(true)
+            // Rhymer / thesaurus / favorites flow their words as wrapping pills (Flexbox).
+            // The dictionary is prose, so it stays a plain vertical list.
+            mBinding.recyclerView.layoutManager = if (it == Tab.DICTIONARY) {
+                LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
+            } else {
+                FlexboxLayoutManager(activity).apply {
+                    flexWrap = FlexWrap.WRAP
+                    justifyContent = JustifyContent.FLEX_START
+                }
+            }
+            // Flexbox item sizes vary, so we can't promise fixed sizes.
+            mBinding.recyclerView.setHasFixedSize(it == Tab.DICTIONARY)
             getInsets(mBinding.recyclerView) { view, insets ->
                 view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     leftMargin = insets.left
@@ -175,7 +188,11 @@ class ResultListFragment<out T: Any> : Fragment() {
     fun enableAutoHideIfNeeded() {
         Log.v(TAG, "$mTab: enableAutoHideIfNeeded")
         if (mTab != null && mBinding.recyclerView.adapter != null) {
-            val lastVisibleItemPosition = (mBinding.recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val lastVisibleItemPosition = when (val lm = mBinding.recyclerView.layoutManager) {
+                is LinearLayoutManager -> lm.findLastVisibleItemPosition()
+                is FlexboxLayoutManager -> lm.findLastVisibleItemPosition()
+                else -> RecyclerView.NO_POSITION
+            }
             @Suppress("UNCHECKED_CAST")
             val itemCount = (mBinding.recyclerView.adapter as ResultListAdapter<T>).itemCount
             Log.v(TAG, "$mTab: enableAutoHideIfNeeded: last visibleItem $lastVisibleItemPosition, item count $itemCount")

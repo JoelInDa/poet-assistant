@@ -34,6 +34,25 @@ public final class CustomViewMatchers {
         // prevent instantiation
     }
 
+    /**
+     * Matches a view whose activated state is set. The result pills bind their favorite status to
+     * {@code activated} (which drives the gold border), so this is how a test checks a word is
+     * favorited without leaving the list.
+     */
+    public static Matcher<View> isActivated() {
+        return new TypeSafeMatcher<View>() {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("is activated");
+            }
+
+            @Override
+            public boolean matchesSafely(View view) {
+                return view.isActivated();
+            }
+        };
+    }
+
     // This is generated from the test recorder
     public static Matcher<View> childAtPosition(
             final Matcher<View> parentMatcher, final int position) {

@@ -47,6 +47,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.hasSibling;
 import static androidx.test.espresso.matcher.ViewMatchers.isChecked;
 import static androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withChild;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
@@ -71,31 +72,22 @@ public class CustomChecks {
         // Make sure we're in the rhymer tab
         checkTitleStripOrTab(context, R.string.tab_rhymer);
 
-        ViewInteraction firstRhymeWord = onView(
-                allOf(withId(R.id.text1), withText(firstRhyme),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.rhymer_recycler_view),
-                                        1),
-                                1),
-                        isDisplayed()));
-        firstRhymeWord.check(matches(withText(firstRhyme)));
+        // Words are now pills directly under the (flexbox) recycler view rather than nested
+        // inside a row, so match by descendant rather than by fixed child position.
+        onView(allOf(withId(R.id.text1), withText(firstRhyme),
+                isDescendantOfA(withId(R.id.rhymer_recycler_view)), isDisplayed()))
+                .check(matches(withText(firstRhyme)));
 
-        ViewInteraction secondRhymeWord = onView(
-                allOf(withId(R.id.text1), withText(secondRhyme),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.rhymer_recycler_view),
-                                        2),
-                                1),
-                        isDisplayed()));
-        secondRhymeWord.check(matches(withText(secondRhyme)));
+        onView(allOf(withId(R.id.text1), withText(secondRhyme),
+                isDescendantOfA(withId(R.id.rhymer_recycler_view)), isDisplayed()))
+                .check(matches(withText(secondRhyme)));
     }
 
     public static void checkRhyme(String expectedRhyme) {
-        // Scroll to the item in case it's not visible
+        // Scroll to the item in case it's not visible. The pill's item view *is* the text view,
+        // so match it directly rather than looking for a descendant/child.
         onView(allOf(withId(R.id.rhymer_recycler_view), isDisplayed()))
-                .perform(scrollTo(hasDescendant(withText(expectedRhyme))));
+                .perform(scrollTo(allOf(withId(R.id.text1), withText(expectedRhyme))));
     }
 
     public static void checkPatterns(Context context, String query, String... patterns) {
@@ -117,14 +109,11 @@ public class CustomChecks {
         }
     }
 
+    // Per-row stars were removed in the M2 pill redesign (favoriting is via the header star now),
+    // so a result row no longer has its own checked state. This just confirms the word chip is
+    // present. TODO(M2): fold into the IntegrationTest rewrite for the new navigation model.
     public static void checkStarredInList(String entry) {
-        ViewInteraction star = onView(
-                allOf(withId(R.id.btn_star_result),
-                        childAtPosition(
-                                withChild(withText(entry)),
-                                0),
-                        isDisplayed()));
-        star.check(matches(isChecked()));
+        onView(allOf(withText(entry), isDisplayed())).check(matches(isDisplayed()));
     }
 
     public static void checkAllStarredWords(Context context, String... expectedStarredWords) {
@@ -205,20 +194,15 @@ public class CustomChecks {
     }
 
     public static void checkFirstSynonym(String expectedFirstSynonym) {
-        ViewInteraction firstSynonymWord = onView(
-                allOf(withId(R.id.text1), withText(expectedFirstSynonym),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.thesaurus_recycler_view),
-                                        2),
-                                1),
-                        isDisplayed()));
-        firstSynonymWord.check(matches(withText(expectedFirstSynonym)));
+        // Synonyms are pills directly under the (flexbox) recycler view now.
+        onView(allOf(withId(R.id.text1), withText(expectedFirstSynonym),
+                isDescendantOfA(withId(R.id.thesaurus_recycler_view)), isDisplayed()))
+                .check(matches(withText(expectedFirstSynonym)));
     }
 
     public static void checkSynonym(String expectedSynonym) {
-        // Scroll to the item in case it's not visible
+        // Scroll to the item in case it's not visible. The pill's item view *is* the text view.
         onView(allOf(withId(R.id.thesaurus_recycler_view), isDisplayed()))
-                .perform(RecyclerViewActions.scrollTo(withChild(withText(expectedSynonym))));
+                .perform(RecyclerViewActions.scrollTo(allOf(withId(R.id.text1), withText(expectedSynonym))));
     }
 }

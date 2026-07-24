@@ -45,4 +45,10 @@
     <color name="app_bar">@color/primary</color>
     <color name="tab_default">#b3ffffff</color>
     <color name="tab_selected">@color/on_primary</color>
+    <!-- result word pill -->
+    <color name="chip_fill">#EEF1F3</color>
+    <color name="chip_stroke">#C7D0D5</color>
+    <!-- favorited pill: gold border + faint gold wash -->
+    <color name="chip_fill_favorite">#FFF6E0</color>
+    <color name="chip_favorite_stroke">#E8A317</color>
 </resources>

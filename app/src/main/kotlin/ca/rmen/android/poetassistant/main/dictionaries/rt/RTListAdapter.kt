@@ -20,11 +20,9 @@
 package ca.rmen.android.poetassistant.main.dictionaries.rt
 
 import android.app.Activity
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.ColorInt
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import ca.rmen.android.poetassistant.R
@@ -32,8 +30,8 @@ import ca.rmen.android.poetassistant.databinding.ListItemHeadingBinding
 import ca.rmen.android.poetassistant.databinding.ListItemSubheadingBinding
 import ca.rmen.android.poetassistant.databinding.ListItemWordBinding
 import ca.rmen.android.poetassistant.main.Tab
-import ca.rmen.android.poetassistant.main.TextPopupMenu
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListAdapter
+import com.google.android.flexbox.FlexboxLayoutManager
 
 open class RTListAdapter(val tab: Tab, private val activity: Activity) : ResultListAdapter<RTEntryViewModel>(ItemCallback()) {
 
@@ -42,7 +40,10 @@ open class RTListAdapter(val tab: Tab, private val activity: Activity) : ResultL
     }
 
     private val mWordClickedListener: OnWordClickListener = activity as OnWordClickListener
-    private val mEntryIconClickListener = EntryIconClickListener()
+
+    // Where a plain tap on a word chip navigates. Favorites is not a lookup mode, so from the
+    // favorites list a tapped word opens in the rhymer; every other list stays in its own mode.
+    private val navigationTab: Tab = if (tab == Tab.FAVORITES) Tab.RHYMER else tab
 
     override fun getItemViewType(position: Int): Int {
         val entry = getItem(position)
@@ -65,50 +66,37 @@ open class RTListAdapter(val tab: Tab, private val activity: Activity) : ResultL
     override fun onBindViewHolder(holder: ResultListEntryViewHolder, position: Int) {
         val viewModel = getItem(position)
         when (viewModel.type) {
-            RTEntryViewModel.Type.HEADING -> (holder.binding as ListItemHeadingBinding).viewModel = viewModel
-            RTEntryViewModel.Type.SUBHEADING -> (holder.binding as ListItemSubheadingBinding).viewModel = viewModel
+            RTEntryViewModel.Type.HEADING -> {
+                (holder.binding as ListItemHeadingBinding).viewModel = viewModel
+                setFullSpan(holder)
+            }
+            RTEntryViewModel.Type.SUBHEADING -> {
+                (holder.binding as ListItemSubheadingBinding).viewModel = viewModel
+                setFullSpan(holder)
+            }
             else -> {
                 val wordBinding = holder.binding as ListItemWordBinding
                 wordBinding.viewModel = viewModel
-                wordBinding.root.setBackgroundColor(getRowBackgroundColor(position))
-                wordBinding.entryIconClickListener = mEntryIconClickListener
-                TextPopupMenu.addPopupMenu(
-                        if (viewModel.showButtons) TextPopupMenu.Style.SYSTEM else TextPopupMenu.Style.FULL,
-                        holder.parentView,
-                        wordBinding.text1,
-                        mWordClickedListener
-                )
+                // Tap the pill: search this word in the current mode.
+                wordBinding.text1.setOnClickListener {
+                    mWordClickedListener.onWordClick(viewModel.text, navigationTab)
+                }
+                // Long-press the pill: toggle favorite. The bound `activated` state gives the
+                // chip its gold border, and the view model persists the change to the DB.
+                wordBinding.text1.setOnLongClickListener { view ->
+                    viewModel.isFavorite.set(!viewModel.isFavorite.get())
+                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                    true
+                }
             }
         }
         holder.binding.executePendingBindings()
     }
 
-    @ColorInt
-    private fun getRowBackgroundColor(rowIndex: Int): Int {
-        val colorRes = if (activity.resources.getBoolean(R.bool.enable_row_alternating_colors)) {
-            if (rowIndex % 2 == 0) R.color.row_background_color_even else R.color.row_background_color_odd
-        } else {
-            R.color.row_background_color
-        }
-        return ContextCompat.getColor(activity, colorRes)
-    }
-
-    inner class EntryIconClickListener {
-        private fun getWord(v: View): String {
-            val binding = DataBindingUtil.getBinding<ListItemWordBinding>(v.parent as View)
-            return binding?.text1?.text.toString()
-        }
-
-        fun onRhymerIconClicked(v: View) {
-            mWordClickedListener.onWordClick(getWord(v), Tab.RHYMER)
-        }
-
-        fun onThesaurusIconClicked(v: View) {
-            mWordClickedListener.onWordClick(getWord(v), Tab.THESAURUS)
-        }
-
-        fun onDictionaryIconClicked(v: View) {
-            mWordClickedListener.onWordClick(getWord(v), Tab.DICTIONARY)
+    // Headings and subheadings occupy a whole row in the flexbox flow, so words start on a fresh line.
+    private fun setFullSpan(holder: ResultListEntryViewHolder) {
+        (holder.itemView.layoutParams as? FlexboxLayoutManager.LayoutParams)?.let {
+            it.flexBasisPercent = 1.0f
         }
     }
 }

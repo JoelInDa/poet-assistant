@@ -1,0 +1,29 @@
+<!--
+  ~ Pill background for a result word. Ripple on tap; the inner shape switches on the
+  ~ "activated" state, which the adapter binds to the word's favorite status: favorited
+  ~ words get a bold gold border so they pop out of the list. Colours are theme-aware
+  ~ (see colors.xml / values-night).
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?attr/colorControlHighlight">
+    <item>
+        <selector>
+            <!-- favorited -->
+            <item android:state_activated="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="22dp" />
+                    <solid android:color="@color/chip_fill_favorite" />
+                    <stroke android:width="2dp" android:color="@color/chip_favorite_stroke" />
+                </shape>
+            </item>
+            <!-- normal -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="22dp" />
+                    <solid android:color="@color/chip_fill" />
+                    <stroke android:width="1dp" android:color="@color/chip_stroke" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

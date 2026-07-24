@@ -19,6 +19,7 @@ androidxTestRunner = "1.6.2"
 androidxUiAutomator = "2.3.0"
 benmanes = "0.52.0"
 festReflect = "1.4.1"
+flexbox = "3.0.0"
 googleTestParameterInjector = "1.18"
 googleMaterial = "1.12.0"
 hilt = "2.56.1"
@@ -61,6 +62,7 @@ androidx-test-runner = { group = "androidx.test", name = "runner", version.ref =
 androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "androidxUiAutomator" }
 androidx-ui-test-junit4-android = { group = "androidx.compose.ui", name = "ui-test-junit4-android", version.ref = "uiTestJunit4Android" }
 fest-reflect = { group = "org.easytesting", name = "fest-reflect", version.ref = "festReflect" }
+flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "googleMaterial"}
 google-test-parameter-injector = { group = "com.google.testparameterinjector", name = "test-parameter-injector", version.ref = "googleTestParameterInjector" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
