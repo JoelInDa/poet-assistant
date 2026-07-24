@@ -21,16 +21,28 @@
 
     <color name="background">@color/surface</color>
     <color name="error">#f88</color>
-    <color name="surface">#181818</color>
-    <color name="on_surface">#deffffff</color>
+
+    <!-- High contrast, but deliberately NOT pure #fff on #000 (21:1). Very bright small
+         text on pure black blooms, and a black field dilates the pupil, which shrinks
+         depth of field and amplifies any refractive error - a real problem when type is
+         already rendering at ~72% of intended physical size on this panel.
+         primary   #EDEDED on #0D0D0D = 16.8:1
+         secondary #A3A3A3 on #0D0D0D =  7.8:1 (was #727272 at 3.7:1, BELOW WCAG AA) -->
+    <color name="surface">#0D0D0D</color>
+    <color name="on_surface">#EDEDED</color>
     <color name="on_primary">#000</color>
     <color name="primary">#A5B7C0</color>
     <color name="primary_dark">#859AA4</color>
-    <color name="primary_text">#cccccc</color>
-    <color name="secondary_text">#727272</color>
+    <color name="primary_text">#EDEDED</color>
+    <color name="secondary_text">#A3A3A3</color>
     <color name="dialog_accent">@color/accent</color>
-    <color name="row_background_color_even">#383838</color>
-    <color name="row_background_color_odd">#303030</color>
-    <color name="divider">#1fffffff</color>
-    <color name="tab_default">#444</color>
+    <color name="row_background_color_even">#1C1C1C</color>
+    <color name="row_background_color_odd">#141414</color>
+    <color name="divider">#33ffffff</color>
+    <!-- Upstream's dark theme tinted the app bar with primary (#A5B7C0), producing a
+         bright band across the top ~28% of this screen - the worst thing possible when
+         the whole point of dark mode here is running the backlight low. -->
+    <color name="app_bar">#1B2429</color>
+    <color name="tab_default">#8A9BA5</color>
+    <color name="tab_selected">#EDEDED</color>
 </resources>

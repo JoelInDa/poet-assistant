@@ -41,8 +41,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top"
-                android:background="@color/primary"
-                android:textColor="?attr/colorOnPrimary"
+                android:background="@color/app_bar"
+                android:textColor="@color/tab_selected"
                 android:textSize="12sp"
                 android:visibility="@{@bool/tab_text? View.GONE:View.VISIBLE}" />
         </androidx.viewpager.widget.ViewPager>
@@ -51,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:statusBarForeground="?attr/colorSurface"
-            android:backgroundTint="?attr/colorPrimary"
+            android:backgroundTint="@color/app_bar"
             android:fitsSystemWindows="true">
 
             <com.google.android.material.search.SearchBar

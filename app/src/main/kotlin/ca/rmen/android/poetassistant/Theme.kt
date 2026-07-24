@@ -24,12 +24,21 @@ import androidx.appcompat.app.AppCompatDelegate
 import ca.rmen.android.poetassistant.settings.SettingsPrefs
 
 object Theme {
+    /**
+     * Only an explicit Light/Dark choice, no "follow system".
+     *
+     * The target device runs Android 8.1, which predates the system-wide dark theme
+     * (Android 10). MODE_NIGHT_FOLLOW_SYSTEM there has nothing to follow and silently
+     * resolves to light, so the old "Auto" option was a setting that appeared to do
+     * something and did not. Dark is the default.
+     */
     @MainThread
     fun setThemeFromSettings(settingsPrefs: SettingsPrefs) {
-        when (settingsPrefs.theme) {
-            SettingsPrefs.THEME_DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            SettingsPrefs.THEME_LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            SettingsPrefs.THEME_AUTO -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        val mode = if (settingsPrefs.theme == SettingsPrefs.THEME_LIGHT) {
+            AppCompatDelegate.MODE_NIGHT_NO
+        } else {
+            AppCompatDelegate.MODE_NIGHT_YES
         }
+        AppCompatDelegate.setDefaultNightMode(mode)
     }
 }

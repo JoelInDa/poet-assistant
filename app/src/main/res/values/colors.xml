@@ -29,14 +29,21 @@
     <color name="primary_dark">#455A64</color>
     <color name="accent">@color/primary</color>
     <color name="dialog_accent">@color/primary</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#727272</color>
+    <!-- Contrast raised for the Palm's 3.3" panel, where 320dpi is assumed but the
+         panel is 445 PPI, so everything renders at ~72% of intended physical size.
+         primary  #1A1A1A on #fff = 17.8:1
+         secondary #595959 on #fff =  6.9:1 (was #727272 at 4.9:1, only just AA) -->
+    <color name="primary_text">#1A1A1A</color>
+    <color name="secondary_text">#595959</color>
     <bool name="enable_row_alternating_colors">false</bool>
     <color name="row_background_color">@android:color/transparent</color>
     <color name="row_background_color_even">#ffffff</color>
     <color name="row_background_color_odd">#f8f8f8</color>
     <color name="divider">#1f000000</color>
     <color name="ic_launcher_background">#FFFFFF</color>
+    <!-- The app bar gets its own colour rather than reusing primary: primary also fills
+         the R/T/D row icons (ic_rhymer.xml etc), so the two cannot move together. -->
+    <color name="app_bar">@color/primary</color>
     <color name="tab_default">#b3ffffff</color>
     <color name="tab_selected">@color/on_primary</color>
 </resources>

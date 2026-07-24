@@ -46,7 +46,6 @@ class SettingsPrefs(application: Application) {
     companion object {
         const val THEME_LIGHT = "Light"
         const val THEME_DARK = "Dark"
-        const val THEME_AUTO = "Auto"
         const val VOICE_SYSTEM = "VOICE_SYSTEM"
         const val PREF_VOICE = "PREF_VOICE"
         // v1 for the speed was a string of values 0.25, 0.5, 1.0, 1.5, or 2.0
@@ -129,7 +128,7 @@ class SettingsPrefs(application: Application) {
 
     var theme: String
         get() {
-            return sharedPreferences.getString(PREF_THEME, THEME_AUTO) ?: THEME_AUTO
+            return sharedPreferences.getString(PREF_THEME, THEME_DARK) ?: THEME_DARK
         }
         set(newValue) {
             sharedPreferences.edit().putString(PREF_THEME, newValue).apply()

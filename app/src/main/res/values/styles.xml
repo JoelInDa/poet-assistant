@@ -55,6 +55,35 @@
 
         <item name="tabStyle">@style/Widget.App.TabLayout</item>
         <item name="android:windowTranslucentStatus">true</item>
+
+        <!-- Enlarged type for the Palm's 72% physical rendering. See dimens.xml. -->
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.App.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.App.BodyMedium</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.App.Title</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.App.Label</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.App.Title</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.App.BodyLarge</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.App.BodyMedium</item>
+        <item name="android:textAppearanceListItem">@style/TextAppearance.App.BodyLarge</item>
+    </style>
+
+    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">@dimen/text_body_large</item>
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+
+    <style name="TextAppearance.App.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">@dimen/text_body_medium</item>
+        <item name="android:textColor">@color/secondary_text</item>
+    </style>
+
+    <style name="TextAppearance.App.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">@dimen/text_title</item>
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+
+    <style name="TextAppearance.App.Label" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">@dimen/text_label</item>
     </style>
 
     <style name="Widget.App.TabLayout" parent="Widget.Material3.TabLayout">
@@ -63,7 +92,7 @@
 
     <style name="ThemeOverlay.App.TabLayout" parent="">
         <item name="colorPrimary">@color/tab_selected</item>
-        <item name="colorSurface">@color/primary</item>
+        <item name="colorSurface">@color/app_bar</item>
         <item name="colorOnSurfaceVariant">@color/tab_default</item>
     </style>
 

@@ -28,4 +28,19 @@
     <dimen name="seekbar_horizontal_padding_fix">0dp</dimen>
     <dimen name="empty_text_margin_bottom">56dp</dimen>
     <dimen name="menu_item_icon_size">24dp</dimen>
+
+    <!-- Type scale for the Palm PVG100.
+         The panel is 445 PPI but reports 320dpi, so 1dp renders at 320/445 = 0.72 of its
+         intended physical size. Restoring true physical size would mean +39%, but that
+         eats the 360x640dp canvas and fits very few words on a 3.3" screen. These sit at
+         about +25%, which is the compromise to tune on-device: change these four values
+         and everything follows. -->
+    <dimen name="text_body_large">20sp</dimen>
+    <dimen name="text_body_medium">18sp</dimen>
+    <dimen name="text_title">22sp</dimen>
+    <dimen name="text_label">18sp</dimen>
+
+    <!-- Minimum comfortable touch target. 48dp renders as ~5.5mm here rather than the
+         7.6mm Android intends, so rows get a little extra. -->
+    <dimen name="min_touch_target">52dp</dimen>
 </resources>
