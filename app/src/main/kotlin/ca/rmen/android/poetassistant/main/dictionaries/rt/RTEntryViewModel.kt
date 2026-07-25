@@ -27,32 +27,20 @@ import dagger.hilt.android.EntryPointAccessors
 
 class RTEntryViewModel(context: Context, val type: Type, val text: String,
                        isFavoriteInitialValue: Boolean, val hasDefinition: Boolean,
-                       val frequency: Int = FREQUENCY_UNKNOWN) {
+                       /**
+                        * How opaque to draw the chip, so the best results stand out and the weak
+                        * tail recedes (the shading from the RhymeZone screenshot). The rhymer sets
+                        * it - by frequency for perfect rhymes, by match quality for near rhymes so
+                        * brightness tracks the ordering. 1 (fully opaque) everywhere else.
+                        */
+                       val chipAlpha: Float = 1f) {
     enum class Type {
         HEADING,
         SUBHEADING,
         WORD
     }
 
-    companion object {
-        /** No frequency signal (headings, and words from tabs other than the rhymer). */
-        const val FREQUENCY_UNKNOWN = -1
-    }
-
     val isFavorite = ObservableBoolean()
-
-    /**
-     * How opaque to draw the chip, so common words stand out and the rare tail (proper nouns,
-     * brands, obscure words) recedes - the frequency shading from the RhymeZone screenshot.
-     * frequency is round(zipf*100): ~300 is zipf 3.0 (a common "rare word" cutoff), 0 is unrankable.
-     */
-    val chipAlpha: Float
-        get() = when {
-            frequency < 0 -> 1f       // no signal: draw normally
-            frequency == 0 -> 0.45f   // rare: proper nouns, brands, obscure
-            frequency < 300 -> 0.72f  // uncommon (zipf < 3)
-            else -> 1f                // common
-        }
 
     // Headings/subheadings: no favorite state, no definition.
     constructor(context: Context, type: Type, text: String) :

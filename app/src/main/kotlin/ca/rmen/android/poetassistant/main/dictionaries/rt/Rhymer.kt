@@ -27,8 +27,8 @@ class RhymeResult(val variant: Int, val sections: List<RhymeSection>)
 /** One syllable-count group; [words] is ordered most-common-first. */
 class RhymeSection(val syllables: Int, val words: List<RhymeWord>)
 
-/** A rhyming word with its wordfreq [frequency] (round(zipf*100); 0 = rare / proper noun). */
-class RhymeWord(val word: String, val frequency: Int)
+/** A rhyming word with the opacity to draw its chip (1 = prominent, lower = recedes). */
+class RhymeWord(val word: String, val chipAlpha: Float)
 
 /**
  * Perfect-rhyme lookup over the CMUdict-derived `pronunciation` table (built by
@@ -48,6 +48,21 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
         private const val NEAR_SCORE_CUTOFF = 1.0 // show everything scoring at least this well...
         private const val NEAR_MIN = 25           // ...but at least this many (dipping below cutoff)...
         private const val NEAR_MAX = 200          // ...and never more than this.
+
+        /** Chip opacity for a perfect rhyme, by wordfreq frequency (round(zipf*100)). */
+        private fun alphaForFrequency(frequency: Int): Float = when {
+            frequency == 0 -> 0.45f   // rare: proper nouns, brands, obscure
+            frequency < 300 -> 0.72f  // uncommon (zipf < 3)
+            else -> 1f                // common
+        }
+
+        /** Chip opacity for a near rhyme, by match quality (the combined score, lower = better), so
+         * shading tracks the ordering - a common-but-distant word stays dim rather than popping. */
+        private fun alphaForScore(score: Double): Float = when {
+            score <= 0.62 -> 1f       // close + common
+            score <= 0.82 -> 0.72f
+            else -> 0.45f             // distant or obscure
+        }
     }
 
     fun isLoaded(): Boolean = embeddedDb.isLoaded()
@@ -117,7 +132,9 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
             .sortedWith(compareBy({ nearScore(it.value.second, it.value.first) }, { it.key }))
         val belowCutoff = ranked.count { nearScore(it.value.second, it.value.first) <= NEAR_SCORE_CUTOFF }
         val count = belowCutoff.coerceIn(NEAR_MIN, NEAR_MAX).coerceAtMost(ranked.size)
-        return listOf(RhymeSection(0, ranked.take(count).map { RhymeWord(it.key, it.value.first) }))
+        return listOf(RhymeSection(0, ranked.take(count).map {
+            RhymeWord(it.key, alphaForScore(nearScore(it.value.second, it.value.first)))
+        }))
     }
 
     /** Lower is better: phonetic distance plus a rarity penalty, so common + close wins. */
@@ -138,7 +155,8 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
             while (cursor.moveToNext()) {
                 val rhyme = cursor.getString(0)
                 if (!seen.add(rhyme)) continue
-                bySyllable.getOrPut(cursor.getInt(1)) { ArrayList() }.add(RhymeWord(rhyme, cursor.getInt(2)))
+                bySyllable.getOrPut(cursor.getInt(1)) { ArrayList() }
+                    .add(RhymeWord(rhyme, alphaForFrequency(cursor.getInt(2))))
             }
         }
         return bySyllable.map { (syllables, words) -> RhymeSection(syllables, words) }

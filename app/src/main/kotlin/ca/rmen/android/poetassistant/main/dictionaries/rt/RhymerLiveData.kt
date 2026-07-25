@@ -73,7 +73,7 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
                 }
                 section.words.forEach { rhyme ->
                     data.add(RTEntryViewModel(context, RTEntryViewModel.Type.WORD, rhyme.word,
-                            favorites.contains(rhyme.word), true, rhyme.frequency))
+                            favorites.contains(rhyme.word), true, rhyme.chipAlpha))
                 }
             }
         }
