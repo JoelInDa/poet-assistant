@@ -33,6 +33,8 @@
     <string name="action_clear">Clear</string>
     <string name="action_search">Search</string>
     <string name="action_random_word">Random word</string>
+    <string name="action_voice_search">Search by voice</string>
+    <string name="voice_search_prompt">Say a word</string>
     <string name="action_clear_search_history">Clear search history</string>
     <string name="confirm_clear_search_history">Clear the search history?</string>
     <string name="action_wotd_history">Words of the day</string>

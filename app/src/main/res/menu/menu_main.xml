@@ -22,6 +22,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".main.MainActivity">
     <item
+        android:id="@+id/action_voice"
+        android:icon="@drawable/ic_mic"
+        android:title="@string/action_voice_search"
+        android:orderInCategory="1"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_random_word"
         android:title="@string/action_random_word"
         android:orderInCategory="100"

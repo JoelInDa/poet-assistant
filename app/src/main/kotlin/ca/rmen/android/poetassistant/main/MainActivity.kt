@@ -19,10 +19,15 @@
 
 package ca.rmen.android.poetassistant.main
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.app.SearchManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import android.media.AudioManager
 import android.net.Uri
@@ -100,6 +105,17 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
     // aren't mistaken for user navigation and recorded again.
     private var mSuppressHistory = false
     private lateinit var mBackCallback: OnBackPressedCallback
+
+    // Voice search: launch the system speech recognizer and look up whatever it hears. Registered
+    // as a field so it's ready before the activity is STARTED.
+    private val mVoiceSearchLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull()
+                    ?.let { navigateToWord(it) }
+            }
+        }
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(FontScale.wrap(newBase))
@@ -261,8 +277,18 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         return super.onCreateOptionsMenu(menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        // Only offer the mic if the device actually has a speech recognizer.
+        menu.findItem(R.id.action_voice)?.isVisible = SpeechRecognizer.isRecognitionAvailable(this)
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.action_voice -> {
+                launchVoiceSearch()
+                return true
+            }
             R.id.action_about -> {
                 startActivity(Intent(this, AboutActivity::class.java))
                 return true
@@ -288,6 +314,24 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
     override fun onWordClick(word: String, tab: Tab) {
         Log.v(TAG, "onWordClick: word=$word, tab=$tab")
         navigateTo(word, tab)
+    }
+
+    /**
+     * Fire the system speech recognizer, preferring on-device recognition so it still works with
+     * no network (verified in airplane mode). The heard word is looked up in [mVoiceSearchLauncher].
+     */
+    private fun launchVoiceSearch() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_search_prompt))
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        }
+        try {
+            mVoiceSearchLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            Log.w(TAG, "No voice recognizer available to handle ACTION_RECOGNIZE_SPEECH", e)
+        }
     }
 
     /**
