@@ -82,6 +82,12 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
         updateRhymeModeLabel()
     }
 
+    /** A new word always starts in perfect mode; the toggle stays put for the current word. */
+    fun resetRhymeModeToPerfect() {
+        mPrefs.isNearRhymes = false
+        updateRhymeModeLabel()
+    }
+
     private fun updateRhymeModeLabel() {
         val res = if (mPrefs.isNearRhymes) R.string.rhyme_mode_near else R.string.rhyme_mode_perfect
         rhymeModeLabel.set(getApplication<Application>().getString(res))

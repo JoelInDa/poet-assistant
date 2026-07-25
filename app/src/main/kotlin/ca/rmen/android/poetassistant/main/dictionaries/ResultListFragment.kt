@@ -162,6 +162,11 @@ class ResultListFragment<out T: Any> : Fragment() {
 
     fun query(query: String, onLoaded: (() -> Unit)? = null) {
         Log.d(TAG, "$mTab : query: $query")
+        // Navigating to a word always resets the rhymer to perfect mode. The near toggle re-runs
+        // through reload() rather than query(), so it isn't affected.
+        if (mTab == Tab.RHYMER && ::mHeaderViewModel.isInitialized) {
+            mHeaderViewModel.resetRhymeModeToPerfect()
+        }
         if (userVisibleHint) {
             AppBarLayoutHelper.disableAutoHide(activity)
             AppBarLayoutHelper.forceExpandAppBarLayout(activity)

@@ -128,6 +128,9 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
         }
         super.onCreate(savedInstanceState)
+        // A fresh launch starts in perfect-rhyme mode (a rotation, savedInstanceState != null,
+        // keeps whatever mode the current word is in).
+        if (savedInstanceState == null) mPrefs.isNearRhymes = false
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setSupportActionBar(mBinding.toolbar)
         mPagerAdapter = PagerAdapter(this, supportFragmentManager, intent)
