@@ -58,19 +58,19 @@ class TestRhymer {
         val results = rhymer.getRhymingWords("night")
         assertEquals(1, results.size) // "night" has one pronunciation
 
-        val oneSyllable = results[0].sections.first { it.syllables == 1 }.words
+        val oneSyllable = results[0].sections.first { it.syllables == 1 }.words.map { it.word }
         assertTrue(oneSyllable.containsAll(listOf("right", "light", "might", "white")))
         // Common words come before rare ones.
         assertTrue(oneSyllable.indexOf("right") < oneSyllable.indexOf("blight"))
 
-        val twoSyllable = results[0].sections.first { it.syllables == 2 }.words
+        val twoSyllable = results[0].sections.first { it.syllables == 2 }.words.map { it.word }
         assertTrue(twoSyllable.contains("tonight"))
     }
 
     @Test
     fun testReducedFinalVowelRhymes() {
         // muffin, mcguffin and toughen all reduce to the "AH F AH N" rhyme key.
-        val rhymes = rhymer.getRhymingWords("muffin").flatMap { it.sections }.flatMap { it.words }
+        val rhymes = rhymer.getRhymingWords("muffin").flatMap { it.sections }.flatMap { it.words }.map { it.word }
         assertTrue(rhymes.contains("mcguffin"))
         assertTrue(rhymes.contains("toughen"))
     }

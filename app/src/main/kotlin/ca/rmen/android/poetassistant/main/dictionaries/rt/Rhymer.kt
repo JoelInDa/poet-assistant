@@ -25,7 +25,10 @@ import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb
 class RhymeResult(val variant: Int, val sections: List<RhymeSection>)
 
 /** One syllable-count group; [words] is ordered most-common-first. */
-class RhymeSection(val syllables: Int, val words: List<String>)
+class RhymeSection(val syllables: Int, val words: List<RhymeWord>)
+
+/** A rhyming word with its wordfreq [frequency] (round(zipf*100); 0 = rare / proper noun). */
+class RhymeWord(val word: String, val frequency: Int)
 
 /**
  * Perfect-rhyme lookup over the CMUdict-derived `pronunciation` table (built by
@@ -57,17 +60,17 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
         // Rows come out grouped by syllable count, common-first within each group. A word can have
         // several pronunciations under one rhyme_key, so dedupe on the word (keeping the first,
         // which is its lowest syllable count / highest frequency by the ORDER BY).
-        val bySyllable = LinkedHashMap<Int, MutableList<String>>()
+        val bySyllable = LinkedHashMap<Int, MutableList<RhymeWord>>()
         val seen = HashSet<String>()
         embeddedDb.query(
-            false, "pronunciation", arrayOf("word", "syllables"),
+            false, "pronunciation", arrayOf("word", "syllables", "frequency"),
             "rhyme_key=? AND word!=?", arrayOf(rhymeKey, excludeWord),
             "syllables, frequency DESC, google_ngram DESC, word", null
         )?.use { cursor ->
             while (cursor.moveToNext()) {
                 val rhyme = cursor.getString(0)
                 if (!seen.add(rhyme)) continue
-                bySyllable.getOrPut(cursor.getInt(1)) { ArrayList() }.add(rhyme)
+                bySyllable.getOrPut(cursor.getInt(1)) { ArrayList() }.add(RhymeWord(rhyme, cursor.getInt(2)))
             }
         }
         return bySyllable.map { (syllables, words) -> RhymeSection(syllables, words) }
