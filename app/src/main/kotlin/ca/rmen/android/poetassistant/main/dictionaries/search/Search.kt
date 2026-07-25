@@ -48,9 +48,14 @@ class Search constructor(
     ) {
     companion object {
         private val TAG = Constants.TAG + Search::class.java.simpleName
+        private val LOOKUP_TABS = listOf(Tab.RHYMER, Tab.THESAURUS, Tab.DICTIONARY)
     }
 
     private val mPagerAdapter: PagerAdapter
+
+    // Bumped on every search so a stale "now load the other tabs" callback from a previous,
+    // superseded search does nothing (the word changed under it).
+    private var mSearchGeneration = 0
 
     init {
         mPagerAdapter = viewPager.adapter as PagerAdapter
@@ -73,20 +78,39 @@ class Search constructor(
     }
 
     /**
-     * Search for the given word in all dictionaries. MainActivity picks which tool to show and
-     * records the move; this just loads the word everywhere so swiping between tools is instant.
+     * Search for the given word in all lookup tools. [priorityTab] is the tool the user is about
+     * to see: we load it first and, once it has results, load the others - so the visible tab isn't
+     * slowed by the other two competing for the single database connection, while swiping between
+     * tools stays instant. MainActivity picks the tool to show and records the move.
      */
-    fun search(word: String) {
-        Log.d(TAG, "search called with $word")
+    fun search(word: String, priorityTab: Tab) {
+        Log.d(TAG, "search called with $word, priority=$priorityTab")
         val wordTrimmed = word.trim().lowercase(Locale.US)
+        val generation = ++mSearchGeneration
 
         selectTabForSearch()
         ViewShownScheduler.runWhenShown(viewPager) {
-            (mPagerAdapter.getFragment(viewPager, Tab.RHYMER) as ResultListFragment<*>?)?.query(wordTrimmed)
-            (mPagerAdapter.getFragment(viewPager, Tab.THESAURUS) as ResultListFragment<*>?)?.query(wordTrimmed)
-            (mPagerAdapter.getFragment(viewPager, Tab.DICTIONARY) as ResultListFragment<*>?)?.query(wordTrimmed)
+            if (generation != mSearchGeneration) return@runWhenShown
+            // priorityTab first, then the remaining lookup tabs (a non-lookup tab like favorites
+            // just falls back to the natural order, rhymer first).
+            val ordered = (listOf(priorityTab) + LOOKUP_TABS).distinct().filter { it in LOOKUP_TABS }
+            val first = fragmentFor(ordered.first())
+            val rest = ordered.drop(1)
+            if (first == null) {
+                rest.forEach { fragmentFor(it)?.query(wordTrimmed) }
+                return@runWhenShown
+            }
+            first.query(wordTrimmed) {
+                // Only fan out to the other tabs if this is still the current search.
+                if (generation == mSearchGeneration) {
+                    rest.forEach { fragmentFor(it)?.query(wordTrimmed) }
+                }
+            }
         }
     }
+
+    private fun fragmentFor(tab: Tab): ResultListFragment<*>? =
+        mPagerAdapter.getFragment(viewPager, tab) as ResultListFragment<*>?
 
     /**
      * Stay in the current lookup mode if we're already in one, so that searching a new word

@@ -65,6 +65,10 @@ class ResultListFragment<out T: Any> : Fragment() {
 
     private var mTab: Tab? = null
 
+    // Fired once, on the next result after a query() call, so the caller can load the visible
+    // tab first and the others only once it has results (see Search.search).
+    private var mPendingOnLoaded: (() -> Unit)? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.v(TAG, "onCreate")
         super.onCreate(savedInstanceState)
@@ -110,7 +114,10 @@ class ResultListFragment<out T: Any> : Fragment() {
                 childFragmentManager.beginTransaction().replace(R.id.result_list_header, headerFragment).commit()
             }
             mViewModel.favoritesLiveData.observe(this, mFavoritesObserver)
-            mViewModel.resultListDataLiveData.observe(this, Observer { data -> mViewModel.setData(data) })
+            mViewModel.resultListDataLiveData.observe(this, Observer { data ->
+                mViewModel.setData(data)
+                mPendingOnLoaded?.let { it(); mPendingOnLoaded = null }
+            })
             return mBinding.root
         }
         return super.onCreateView(inflater, container, savedInstanceState)
@@ -153,12 +160,13 @@ class ResultListFragment<out T: Any> : Fragment() {
         }
     }
 
-    fun query(query: String) {
+    fun query(query: String, onLoaded: (() -> Unit)? = null) {
         Log.d(TAG, "$mTab : query: $query")
         if (userVisibleHint) {
             AppBarLayoutHelper.disableAutoHide(activity)
             AppBarLayoutHelper.forceExpandAppBarLayout(activity)
         }
+        mPendingOnLoaded = onLoaded
         mViewModel.setQueryParams(ResultListViewModel.QueryParams(query))
         Log.v(TAG, "$mTab: query: invalidate options menu")
         activity?.invalidateOptionsMenu()

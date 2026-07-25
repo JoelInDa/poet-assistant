@@ -298,7 +298,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         val trimmed = word.trim().lowercase(Locale.US)
         if (trimmed.isEmpty()) return
         mSuppressHistory = true
-        mSearch.search(trimmed)
+        mSearch.search(trimmed, priorityTab = tab)
         mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(tab), false)
         mSuppressHistory = false
         pushHistory(NavState(trimmed, tab))
@@ -309,7 +309,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
         val trimmed = word.trim().lowercase(Locale.US)
         if (trimmed.isEmpty()) return
         mSuppressHistory = true
-        mSearch.search(trimmed)
+        mSearch.search(trimmed, priorityTab = currentTab())
         mSuppressHistory = false
         pushHistory(NavState(trimmed, currentTab()))
     }
@@ -332,7 +332,7 @@ open class MainActivityImpl : AppCompatActivity(), OnWordClickListener, WarningN
             return
         }
         mSuppressHistory = true
-        mSearch.search(prev.word)
+        mSearch.search(prev.word, priorityTab = prev.tab)
         mBinding.viewPager.setCurrentItem(mPagerAdapter.getPositionForTab(prev.tab), false)
         mSuppressHistory = false
         mCurrent = prev
