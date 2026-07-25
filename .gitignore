@@ -18,3 +18,7 @@ app/schemas
 # tools/rhymedb/build_db.py). Not committed to avoid repo bloat - it's recoverable from git
 # history: `git show <commit-before-v2>:app/src/main/assets/poet_assistant.db > tools/rhymedb/poet_assistant.base.db`
 tools/rhymedb/poet_assistant.base.db
+
+# M3 rhyme pipeline build inputs (downloaded, not committed)
+tools/rhymedb/cmudict.dict
+tools/rhymedb/.venv/

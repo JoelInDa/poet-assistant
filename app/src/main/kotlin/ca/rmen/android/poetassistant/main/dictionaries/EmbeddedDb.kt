@@ -38,11 +38,11 @@ class EmbeddedDb(val context: Context) {
         private val TAG = Constants.TAG + EmbeddedDb::class.java.simpleName
         private const val MAX_QUERY_ARGUMENT_COUNT = 500
         private const val DB_NAME = "poet_assistant"
-        // v2 adds an index on thesaurus(word) and the thesaurus_reverse table (see
-        // tools/rhymedb/build_db.py), turning the reverse synonym lookup from a ~3.5s full
-        // table scan into an indexed query. Bumping the version makes EmbeddedDb re-copy the
-        // new asset over an older install's cached DB.
-        private const val DB_VERSION = 2
+        // v2 added the thesaurus(word) index + thesaurus_reverse table (fast reverse synonym
+        // lookup). v3 adds the CMUdict `pronunciation` table (full phonemes, syllable counts,
+        // rhyme/near keys, wordfreq frequency) for the rewritten rhymer. See
+        // tools/rhymedb/build_db.py. Bumping the version makes EmbeddedDb re-copy the new asset.
+        private const val DB_VERSION = 3
         private const val MAX_DB_RESTORE_ATTEMPTS = 3
         /**
          * SQLite doesn't support unlimited number of query arguments.  If we have to do a mega huge
