@@ -53,11 +53,10 @@
     <string name="search_hint">Lookup a word</string>
     <string name="favorites_list_header">Favorites</string>
     <string name="wotd_list_header">Words of the day</string>
-    <string name="rhyme_section_stress_syllables">Strict rhyme matches:</string>
-    <string name="rhyme_section_favorites">Favorites:</string>
-    <string name="rhyme_section_one_syllable">Last syllable:</string>
-    <string name="rhyme_section_two_syllables">Last 2 syllables:</string>
-    <string name="rhyme_section_three_syllables">Last 3 syllables:</string>
+    <plurals name="rhyme_syllables">
+        <item quantity="one">%d syllable</item>
+        <item quantity="other">%d syllables</item>
+    </plurals>
     <string name="thesaurus_section_synonyms">Synonyms:</string>
     <string name="thesaurus_section_antonyms">Antonyms:</string>
     <string name="empty_pattern_list_with_query">Sorry, no words match &#8220;%s&#8221;</string>
@@ -140,12 +139,6 @@
     </string-array>
     <string name="wotd_setting_system_notification_priority_title">Notification priority</string>
     <string name="wotd_setting_system_notification_priority_summary">%s</string>
-    <string name="all_rhymes_setting_title">Rhymes without definitions</string>
-    <string name="all_rhymes_setting_description">Display all rhymes, even if words have no definitions (search may be slower)</string>
-    <string name="match_ao_aa_setting_title">AO /ɔ/ matches AA /ɑ/</string>
-    <string name="match_ao_aa_setting_description">AO /ɔ/: "off".\nAA /ɑ/: "father".</string>
-    <string name="match_aor_ao_setting_title">AOR /ɔr/ matches AO /ɔ/</string>
-    <string name="match_aor_ao_setting_description">AOR /ɔr/: "more".\nAO /ɔ/: "thaw".</string>
     <string name="thesaurus_reverse_lookup_setting_title">Include reverse lookup</string>
     <string name="thesaurus_reverse_lookup_setting_description">May be slower and include less relevant results.</string>
     <string name="share">Share</string>
@@ -187,7 +180,6 @@
     <string translatable="false" name="pref_voice_value_with_country"><![CDATA[%1$s (%2$s)<br/><font color=\'#888888\'><small>%3$s</small></font>]]></string>
     <string translatable="false" name="pref_voice_value_without_country"><![CDATA[%1$s<br/><font color=\'#888888\'><small>%2$s</small></font>]]></string>
     <string name="pref_category_voice">Voice settings</string>
-    <string name="pref_category_rhyming">Rhymer</string>
     <string name="pref_category_thesaurus">Thesaurus</string>
     <string name="pref_category_user_data">User data</string>
     <string name="pref_category_notifications">Notifications</string>

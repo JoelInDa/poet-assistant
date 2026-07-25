@@ -28,8 +28,6 @@ import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListData
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListLiveData
-import ca.rmen.android.poetassistant.settings.SettingsPrefs
-import ca.rmen.rhymer.RhymeResult
 import dagger.hilt.android.EntryPointAccessors
 
 class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
@@ -38,14 +36,12 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
         private val TAG = Constants.TAG + RhymerLiveData::class.java.simpleName
     }
 
-    private val mPrefs: SettingsPrefs
     private val mRhymer: Rhymer
     private val mFavorites: Favorites
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, NonAndroidEntryPoint::class.java)
         mRhymer = entryPoint.rhymer()
-        mPrefs = entryPoint.prefs()
         mFavorites = entryPoint.favorites()
     }
 
@@ -53,57 +49,30 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
         Log.d(TAG, "loadInBackground: query=$query")
         val before = System.currentTimeMillis()
 
-        val data = ArrayList<RTEntryViewModel>()
         if (TextUtils.isEmpty(query)) return emptyResult()
+        val results = mRhymer.getRhymingWords(query)
+        if (results.isEmpty()) return emptyResult()
 
-        val rhymeResults = mRhymer.getRhymingWords(query, Constants.MAX_RESULTS)
-                ?: return emptyResult()
-
-        // The favorite set is still used to flag matching words (their pills get the gold
-        // border), but favorites are no longer duplicated into their own section here: they
-        // live only on the dedicated favorites tab.
+        // The favorite set flags matching words (their pills get the gold border); favorites are no
+        // longer duplicated into their own section (that lives on the dedicated favorites tab).
         val favorites = mFavorites.getFavorites()
-        rhymeResults.forEach {
-            // Add the word variant, if there are multiple pronunciations.
-            if (rhymeResults.size > 1) {
-                val heading = query + " (" + (it.variantNumber + 1) + ")"
-                data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, heading))
+        val data = ArrayList<RTEntryViewModel>()
+        results.forEach { result ->
+            // Only label pronunciations when the query word has more than one (e.g. "read (1)").
+            if (results.size > 1) {
+                data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, "$query (${result.variant + 1})"))
             }
-            addResultSection(favorites, data, R.string.rhyme_section_stress_syllables, it.strictRhymes)
-            addResultSection(favorites, data, R.string.rhyme_section_three_syllables, it.threeSyllableRhymes)
-            addResultSection(favorites, data, R.string.rhyme_section_two_syllables, it.twoSyllableRhymes)
-            addResultSection(favorites, data, R.string.rhyme_section_one_syllable, it.oneSyllableRhymes)
-        }
-        val result = ResultListData(query, data)
-        val after = System.currentTimeMillis()
-        Log.d(TAG, "loadInBackground finished in ${(after - before)} ms")
-        return result
-    }
-
-    private fun emptyResult(): ResultListData<RTEntryViewModel> {
-        return ResultListData(query, emptyList())
-    }
-
-    private fun addResultSection(favorites: Set<String>, results: MutableList<RTEntryViewModel>, sectionHeadingResId: Int, rhymes: Array<String>) {
-        if (rhymes.isNotEmpty()) {
-            val wordsWithDefinitions = if (mPrefs.isAllRhymesEnabled) mRhymer.getWordsWithDefinitions(rhymes) else null
-            results.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING, context.getString(sectionHeadingResId)))
-            rhymes.forEach { rhyme ->
-                val hasDefinition = wordsWithDefinitions == null || wordsWithDefinitions.contains(rhyme)
-                results.add(RTEntryViewModel(
-                        context,
-                        RTEntryViewModel.Type.WORD,
-                        rhyme,
-                        favorites.contains(rhyme),
-                        hasDefinition))
-            }
-            if (results.size >= Constants.MAX_RESULTS) {
-                results.add(RTEntryViewModel(
-                        context,
-                        RTEntryViewModel.Type.SUBHEADING,
-                        context.getString(R.string.max_results, Constants.MAX_RESULTS)))
+            result.sections.forEach { section ->
+                data.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING,
+                        context.resources.getQuantityString(R.plurals.rhyme_syllables, section.syllables, section.syllables)))
+                section.words.forEach { word ->
+                    data.add(RTEntryViewModel(context, RTEntryViewModel.Type.WORD, word, favorites.contains(word)))
+                }
             }
         }
+        Log.d(TAG, "loadInBackground finished in ${System.currentTimeMillis() - before} ms")
+        return ResultListData(query, data)
     }
 
+    private fun emptyResult(): ResultListData<RTEntryViewModel> = ResultListData(query, emptyList())
 }

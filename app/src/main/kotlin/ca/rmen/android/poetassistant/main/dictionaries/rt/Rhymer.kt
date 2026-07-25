@@ -19,120 +19,57 @@
 
 package ca.rmen.android.poetassistant.main.dictionaries.rt
 
-import android.util.Log
-import ca.rmen.android.poetassistant.Constants
 import ca.rmen.android.poetassistant.main.dictionaries.EmbeddedDb
-import ca.rmen.android.poetassistant.settings.SettingsPrefs
-import ca.rmen.rhymer.WordVariant
-import java.util.Locale
-import java.util.SortedSet
-import java.util.TreeSet
-import javax.inject.Inject
 
-class Rhymer @Inject constructor(private val embeddedDb: EmbeddedDb, private val prefs: SettingsPrefs) : ca.rmen.rhymer.Rhymer() {
-    companion object {
-        private val TAG = Constants.TAG + Rhymer::class.java.simpleName
-    }
+/** The rhyming words of a single pronunciation, grouped by the rhyming word's syllable count. */
+class RhymeResult(val variant: Int, val sections: List<RhymeSection>)
+
+/** One syllable-count group; [words] is ordered most-common-first. */
+class RhymeSection(val syllables: Int, val words: List<String>)
+
+/**
+ * Perfect-rhyme lookup over the CMUdict-derived `pronunciation` table (built by
+ * tools/rhymedb/build_db.py). Two words rhyme iff they share a `rhyme_key` (the phonemes from the
+ * last stressed vowel to the end). Results are grouped by the rhyming word's syllable count and
+ * ordered by wordfreq `frequency` (common, singable words first), with `google_ngram` as a
+ * tiebreaker for the rare tail. Replaces the old ca.rmen:rhymer library, whose SortedSet contract
+ * forced alphabetical output.
+ */
+class Rhymer(private val embeddedDb: EmbeddedDb) {
 
     fun isLoaded(): Boolean = embeddedDb.isLoaded()
 
-    override fun getWordVariants(word: String): List<WordVariant> {
-        val result = ArrayList<WordVariant>()
-        val projection = arrayOf("variant_number", "stress_syllables", "last_syllable", "last_two_syllables", "last_three_syllables")
-        val selection = "word=?"
-        val selectionArgs = arrayOf(word)
-        embeddedDb.query("word_variants", projection, selection, selectionArgs)?.use { cursor ->
-            while (cursor.moveToNext()) {
-                var column = 0
-                val variantNumber = cursor.getInt(column++)
-                val lastStressSyllable = cursor.getString(column++)
-                val lastSyllable = cursor.getString(column++)
-                val lastTwoSyllables = cursor.getString(column++)
-                val lastThreeSyllables = cursor.getString(column)
-                val wordVariant = WordVariant(variantNumber, lastStressSyllable, lastSyllable, lastTwoSyllables, lastThreeSyllables)
-                result.add(wordVariant)
-            }
-        }
-        return result
-    }
-
     /**
-     * @return the words which rhyme with the given word, in any order, matching one, two or three
-     * syllables.
+     * @return one [RhymeResult] per pronunciation of [word] (a word like "read" has more than one),
+     * or an empty list if [word] isn't in the pronunciation table. Each result's sections are
+     * ordered by syllable count, and the words within each section most-common-first.
      */
-    fun getFlatRhymes(word: String): Set<String> {
-        val rhymeResults = super.getRhymingWords(word, Constants.MAX_RESULTS)
-        val flatRhymes = HashSet<String>()
-        rhymeResults.forEach {
-            flatRhymes.addAll(it.strictRhymes)
-            flatRhymes.addAll(it.oneSyllableRhymes)
-            flatRhymes.addAll(it.twoSyllableRhymes)
-            flatRhymes.addAll(it.threeSyllableRhymes)
-        }
-        return flatRhymes
-    }
-
-    override fun getWordsWithLastStressSyllable(lastStressSyllable: String): SortedSet<String> {
-        return lookupBySyllable(lastStressSyllable, "stress_syllables")
-    }
-
-    override fun getWordsWithLastSyllable(lastSyllable: String): SortedSet<String> {
-        return lookupBySyllable(lastSyllable, "last_syllable")
-    }
-
-    override fun getWordsWithLastTwoSyllables(lastTwoSyllables: String): SortedSet<String> {
-        return lookupBySyllable(lastTwoSyllables, "last_two_syllables")
-    }
-
-    override fun getWordsWithLastThreeSyllables(lastThreeSyllables: String): SortedSet<String> {
-        return lookupBySyllable(lastThreeSyllables, "last_three_syllables")
-    }
-
-    /**
-     * Of the given words, returns a set containing those which have a definition in the dictionary table.
-     */
-    fun getWordsWithDefinitions(words: Array<String>): Set<String> {
-        if (words.isEmpty()) return emptySet()
-        Log.v(TAG, "getWordsWithDefinitions for ${words.size} words")
-        val result = HashSet<String>()
-        val projection = arrayOf("word")
-        val queryCount = EmbeddedDb.getQueryCount(words.size)
-        for (i in 0 until queryCount) {
-            val queryWords = EmbeddedDb.getArgsInQuery(words, i)
-            Log.v(TAG, "getWordsWithDefinitions: query $i has ${queryWords.size} words")
-            val selection = "word in " + EmbeddedDb.buildInClause(queryWords.size) + " AND has_definition=1"
-            embeddedDb.query("word_variants", projection, selection, queryWords)?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    result.add(cursor.getString(0))
-                }
+    fun getRhymingWords(word: String): List<RhymeResult> {
+        val variants = ArrayList<Pair<Int, String>>() // (variant, rhyme_key)
+        embeddedDb.query("pronunciation", arrayOf("variant", "rhyme_key"), "word=?", arrayOf(word))
+            ?.use { cursor ->
+                while (cursor.moveToNext()) variants.add(cursor.getInt(0) to cursor.getString(1))
             }
-        }
-        return result
+        return variants.map { (variant, rhymeKey) -> RhymeResult(variant, rhymesForKey(rhymeKey, word)) }
     }
 
-    private fun lookupBySyllable(syllables: String, columnName: String): SortedSet<String> {
-        val result = TreeSet<String>()
-        val projection = arrayOf("word")
-        var selectionColumn = columnName
-        var inputSyllables = syllables
-        if (prefs.isAORAOMatchEnabled && syllables.contains("AO")) {
-            selectionColumn = String.format(Locale.US, "replace(%s, 'AOR', 'AO')", selectionColumn)
-            inputSyllables = inputSyllables.replace("AOR", "AO")
-        }
-        if (prefs.isAOAAMatchEnabled && (syllables.contains("AO") || syllables.contains("AA"))) {
-            selectionColumn = String.format(Locale.US, "replace(%s, 'AO', 'AA')", selectionColumn)
-            inputSyllables = inputSyllables.replace("AO", "AA")
-        }
-        var selection = "$selectionColumn = ? "
-        if (!prefs.isAllRhymesEnabled) {
-            selection += "AND has_definition=1"
-        }
-        val selectionArgs = arrayOf(inputSyllables)
-        embeddedDb.query("word_variants", projection, selection, selectionArgs)?.use { cursor ->
+    private fun rhymesForKey(rhymeKey: String, excludeWord: String): List<RhymeSection> {
+        // Rows come out grouped by syllable count, common-first within each group. A word can have
+        // several pronunciations under one rhyme_key, so dedupe on the word (keeping the first,
+        // which is its lowest syllable count / highest frequency by the ORDER BY).
+        val bySyllable = LinkedHashMap<Int, MutableList<String>>()
+        val seen = HashSet<String>()
+        embeddedDb.query(
+            false, "pronunciation", arrayOf("word", "syllables"),
+            "rhyme_key=? AND word!=?", arrayOf(rhymeKey, excludeWord),
+            "syllables, frequency DESC, google_ngram DESC, word", null
+        )?.use { cursor ->
             while (cursor.moveToNext()) {
-                result.add(cursor.getString(0))
+                val rhyme = cursor.getString(0)
+                if (!seen.add(rhyme)) continue
+                bySyllable.getOrPut(cursor.getInt(1)) { ArrayList() }.add(rhyme)
             }
         }
-        return result
+        return bySyllable.map { (syllables, words) -> RhymeSection(syllables, words) }
     }
 }

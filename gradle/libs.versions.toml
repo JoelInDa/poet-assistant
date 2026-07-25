@@ -29,7 +29,6 @@ kotlin = "2.1.20"
 kotlinxCoroutines = "1.10.1"
 ksp = "2.1.20-1.0.31"
 porterStemmer = "1.0.0"
-rhymer = "1.2.0"
 robolectric = "4.14.1"
 uiTestJunit4Android = "1.7.8"
 
@@ -74,7 +73,6 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 porter-stemmer = { group = "ca.rmen", name = "porter-stemmer", version.ref = "porterStemmer" }
-rhymer = { group = "ca.rmen", name = "rhymer", version.ref = "rhymer" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 robolectric-annotations = { group = "org.robolectric", name = "annotations", version.ref = "robolectric" }
 

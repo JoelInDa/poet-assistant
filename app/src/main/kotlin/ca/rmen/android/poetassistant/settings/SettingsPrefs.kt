@@ -35,9 +35,6 @@ class SettingsPrefs(application: Application) {
         // Multiplies every sp size. 1.0 is the M1 baseline (already +25% for the panel); the four
         // steps are one larger and two smaller, with 1.0 the default (the 3rd-largest).
         const val TEXT_SIZE_DEFAULT = "1.0"
-        private const val PREF_ALL_RHYMES_ENABLED = "PREF_ALL_RHYMES_ENABLED"
-        private const val PREF_MATCH_AO_AA_ENABLED = "PREF_MATCH_AO_AA_ENABLED"
-        private const val PREF_MATCH_AOR_AO_ENABLED = "PREF_MATCH_AOR_AO_ENABLED"
         private const val PREF_TAB = "PREF_TAB"
         private const val PREF_TAB_DEFAULT = "RHYMER"
 
@@ -57,30 +54,6 @@ class SettingsPrefs(application: Application) {
     val textScale: Float
         get() = (sharedPreferences.getString(PREF_TEXT_SIZE, TEXT_SIZE_DEFAULT)
             ?: TEXT_SIZE_DEFAULT).toFloatOrNull() ?: 1.0f
-
-    var isAllRhymesEnabled: Boolean
-        get () {
-            return sharedPreferences.getBoolean(PREF_ALL_RHYMES_ENABLED, false)
-        }
-        set(newValue) {
-            sharedPreferences.edit().putBoolean(PREF_ALL_RHYMES_ENABLED, newValue).apply()
-        }
-
-    var isAOAAMatchEnabled: Boolean
-        get () {
-            return sharedPreferences.getBoolean(PREF_MATCH_AO_AA_ENABLED, false)
-        }
-        set(newValue) {
-            sharedPreferences.edit().putBoolean(PREF_MATCH_AO_AA_ENABLED, newValue).apply()
-        }
-
-    var isAORAOMatchEnabled: Boolean
-        get () {
-            return sharedPreferences.getBoolean(PREF_MATCH_AOR_AO_ENABLED, false)
-        }
-        set(newValue) {
-            sharedPreferences.edit().putBoolean(PREF_MATCH_AOR_AO_ENABLED, newValue).apply()
-        }
 
     var tab: String
         get() {

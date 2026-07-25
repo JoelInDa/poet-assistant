@@ -210,7 +210,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.porter.stemmer)
-    implementation(libs.rhymer)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 
