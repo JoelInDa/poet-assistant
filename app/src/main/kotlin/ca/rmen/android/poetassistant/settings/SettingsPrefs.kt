@@ -35,6 +35,9 @@ class SettingsPrefs(application: Application) {
         // Multiplies every sp size. 1.0 is the M1 baseline (already +25% for the panel); the four
         // steps are one larger and two smaller, with 1.0 the default (the 3rd-largest).
         const val TEXT_SIZE_DEFAULT = "1.0"
+        // Rhymer mode: false = perfect rhymes, true = near (slant) rhymes. Toggled from the
+        // rhymer header; sticky so a new search stays in the chosen mode.
+        const val PREF_NEAR_RHYMES = "PREF_NEAR_RHYMES"
         private const val PREF_TAB = "PREF_TAB"
         private const val PREF_TAB_DEFAULT = "RHYMER"
 
@@ -54,6 +57,12 @@ class SettingsPrefs(application: Application) {
     val textScale: Float
         get() = (sharedPreferences.getString(PREF_TEXT_SIZE, TEXT_SIZE_DEFAULT)
             ?: TEXT_SIZE_DEFAULT).toFloatOrNull() ?: 1.0f
+
+    var isNearRhymes: Boolean
+        get() = sharedPreferences.getBoolean(PREF_NEAR_RHYMES, false)
+        set(value) {
+            sharedPreferences.edit().putBoolean(PREF_NEAR_RHYMES, value).apply()
+        }
 
     var tab: String
         get() {

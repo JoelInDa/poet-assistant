@@ -28,6 +28,7 @@ import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import ca.rmen.android.poetassistant.Favorites
 import ca.rmen.android.poetassistant.R
+import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import ca.rmen.android.poetassistant.databinding.BindingCallbackAdapter
 import ca.rmen.android.poetassistant.databinding.LiveDataMapping
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
@@ -42,11 +43,17 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
     val snackbarText = MutableLiveData<String>()
     val isFavoriteLiveData: LiveData<Boolean>
 
+    // Rhymer perfect/near toggle: the label shows the current mode (only shown on the rhymer tab).
+    val rhymeModeLabel = ObservableField<String>()
+
     private val mFavorites: Favorites
+    private val mPrefs: SettingsPrefs
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(application, NonAndroidEntryPoint::class.java)
         mFavorites = entryPoint.favorites()
+        mPrefs = entryPoint.prefs()
+        updateRhymeModeLabel()
         // Expose a LiveData to the fragment, so it can update the star icon when the favorite
         // value changes in the DB. This is relevant when the favorite value changes because the star
         // was clicked in *another* fragment. If we only had one screen where the user could change
@@ -67,6 +74,17 @@ class ResultListHeaderViewModel(application: Application) : AndroidViewModel(app
     fun clearFavorites() {
         mFavorites.clear()
         snackbarText.value = getApplication<Application>().getString(R.string.favorites_cleared)
+    }
+
+    /** Flip between perfect and near rhymes. The caller re-runs the rhymer query afterwards. */
+    fun toggleRhymeMode() {
+        mPrefs.isNearRhymes = !mPrefs.isNearRhymes
+        updateRhymeModeLabel()
+    }
+
+    private fun updateRhymeModeLabel() {
+        val res = if (mPrefs.isNearRhymes) R.string.rhyme_mode_near else R.string.rhyme_mode_perfect
+        rhymeModeLabel.set(getApplication<Application>().getString(res))
     }
 }
 

@@ -262,6 +262,9 @@ class ResultListFragment<out T: Any> : Fragment() {
         mViewModel.setQueryParams(ResultListViewModel.QueryParams(mHeaderViewModel.query.get()))
     }
 
+    /** Re-run the current query after the perfect/near rhyme mode was toggled in the header. */
+    fun reloadForModeChange() = reload()
+
     // If we have an empty list because the user didn't enter any search term,
     // we'll show a text to tell them to search.
     private fun getNoQueryEmptyText(): CharSequence {

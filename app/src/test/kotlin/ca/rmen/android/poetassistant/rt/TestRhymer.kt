@@ -24,6 +24,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -73,6 +74,18 @@ class TestRhymer {
         val rhymes = rhymer.getRhymingWords("muffin").flatMap { it.sections }.flatMap { it.words }.map { it.word }
         assertTrue(rhymes.contains("mcguffin"))
         assertTrue(rhymes.contains("toughen"))
+    }
+
+    @Test
+    fun testNearRhymes() {
+        val near = rhymer.getNearRhymingWords("night")
+            .flatMap { it.sections }.flatMap { it.words }.map { it.word }
+        // slant rhymes present (night -> side / wide, T->D)
+        assertTrue(near.contains("side"))
+        assertTrue(near.contains("wide"))
+        // perfect rhymes are excluded - they're the "perfect" view
+        assertFalse(near.contains("right"))
+        assertFalse(near.contains("light"))
     }
 
     @Test

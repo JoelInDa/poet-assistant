@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2026 Joel Haus
+  ~
+  ~ This file is part of jLyrics Assistant (a fork of Poet Assistant).
+  ~
+  ~ jLyrics Assistant is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  -->
+
+<!-- Material "swap_horiz" icon, tinted to the control colour so it adapts to both themes. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M6.99,11L3,15l3.99,4v-3H14v-2H6.99V11zM21,9l-3.99,-4v3H10v2h7.01v3L21,9z" />
+</vector>

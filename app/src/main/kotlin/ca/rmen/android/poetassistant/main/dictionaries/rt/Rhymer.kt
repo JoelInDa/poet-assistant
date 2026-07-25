@@ -40,6 +40,11 @@ class RhymeWord(val word: String, val frequency: Int)
  */
 class Rhymer(private val embeddedDb: EmbeddedDb) {
 
+    companion object {
+        // Max phonetic tail distance for a near rhyme (tuned in tools' nearrhyme.py).
+        private const val NEAR_THRESHOLD = 1.6
+    }
+
     fun isLoaded(): Boolean = embeddedDb.isLoaded()
 
     /**
@@ -47,13 +52,66 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
      * or an empty list if [word] isn't in the pronunciation table. Each result's sections are
      * ordered by syllable count, and the words within each section most-common-first.
      */
-    fun getRhymingWords(word: String): List<RhymeResult> {
-        val variants = ArrayList<Pair<Int, String>>() // (variant, rhyme_key)
+    fun getRhymingWords(word: String): List<RhymeResult> =
+        pronunciationsOf(word).map { (variant, rhymeKey) -> RhymeResult(variant, rhymesForKey(rhymeKey, word)) }
+
+    /**
+     * Near (slant) rhymes for [word]: words whose rhyme tail is phonetically close but not identical.
+     * Grouped by syllable count, ordered by closeness then frequency. Perfect rhymes are excluded -
+     * they're what [getRhymingWords] returns.
+     */
+    fun getNearRhymingWords(word: String): List<RhymeResult> =
+        pronunciationsOf(word).map { (variant, rhymeKey) -> RhymeResult(variant, nearRhymesForKey(rhymeKey, word)) }
+
+    /** The (variant, rhyme_key) pairs for each pronunciation of [word]. */
+    private fun pronunciationsOf(word: String): List<Pair<Int, String>> {
+        val variants = ArrayList<Pair<Int, String>>()
         embeddedDb.query("pronunciation", arrayOf("variant", "rhyme_key"), "word=?", arrayOf(word))
             ?.use { cursor ->
                 while (cursor.moveToNext()) variants.add(cursor.getInt(0) to cursor.getString(1))
             }
-        return variants.map { (variant, rhymeKey) -> RhymeResult(variant, rhymesForKey(rhymeKey, word)) }
+        return variants
+    }
+
+    private fun nearRhymesForKey(rhymeKey: String, excludeWord: String): List<RhymeSection> {
+        val queryTail = rhymeKey.split(' ')
+        val vowel = queryTail[0] // candidates share the query's stressed vowel
+        // A candidate word can have several pronunciations; keep its closest, and drop any word that
+        // is also a perfect rhyme (it belongs in the perfect view).
+        val perfect = HashSet<String>()
+        val best = HashMap<String, Triple<Int, Int, Double>>() // word -> (syllables, frequency, dist)
+        embeddedDb.query(
+            false, "pronunciation", arrayOf("word", "syllables", "frequency", "rhyme_key"),
+            "(rhyme_key = ? OR rhyme_key GLOB ?) AND word != ?", arrayOf(vowel, "$vowel *", excludeWord),
+            null, null
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val candKey = cursor.getString(3)
+                val candWord = cursor.getString(0)
+                if (candKey == rhymeKey) {
+                    perfect.add(candWord)
+                    continue
+                }
+                val dist = Phonetics.tailDist(queryTail, candKey.split(' '))
+                if (dist <= 0.0 || dist > NEAR_THRESHOLD) continue
+                val existing = best[candWord]
+                if (existing == null || dist < existing.third) {
+                    best[candWord] = Triple(cursor.getInt(1), cursor.getInt(2), dist)
+                }
+            }
+        }
+        perfect.forEach { best.remove(it) }
+
+        // Group by syllable count; within a group, closest first then most common.
+        return best.entries
+            .groupBy { it.value.first }
+            .toSortedMap()
+            .map { (syllables, entries) ->
+                val words = entries
+                    .sortedWith(compareBy({ it.value.third }, { -it.value.second }, { it.key }))
+                    .map { RhymeWord(it.key, it.value.second) }
+                RhymeSection(syllables, words)
+            }
     }
 
     private fun rhymesForKey(rhymeKey: String, excludeWord: String): List<RhymeSection> {

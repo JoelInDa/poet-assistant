@@ -92,6 +92,11 @@ class ResultListHeaderFragment : Fragment(), ConfirmDialogFragment.ConfirmDialog
     private val mFavoriteObserver = Observer<Boolean> { isFavorite -> mBinding.btnStarQuery.isChecked = isFavorite == true }
 
     inner class ButtonListener {
+        fun onRhymeModeButtonClicked(@Suppress("UNUSED_PARAMETER") v: View) {
+            mViewModel.toggleRhymeMode()
+            (parentFragment as? ResultListFragment<*>)?.reloadForModeChange()
+        }
+
         fun onDeleteFavoritesButtonClicked(@Suppress("UNUSED_PARAMETER") v: View) {
             ConfirmDialogFragment.show(
                     ACTION_CLEAR_FAVORITES,

@@ -28,6 +28,7 @@ import ca.rmen.android.poetassistant.R
 import ca.rmen.android.poetassistant.di.NonAndroidEntryPoint
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListData
 import ca.rmen.android.poetassistant.main.dictionaries.ResultListLiveData
+import ca.rmen.android.poetassistant.settings.SettingsPrefs
 import dagger.hilt.android.EntryPointAccessors
 
 class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<ResultListData<RTEntryViewModel>>(context) {
@@ -38,11 +39,13 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
 
     private val mRhymer: Rhymer
     private val mFavorites: Favorites
+    private val mPrefs: SettingsPrefs
 
     init {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, NonAndroidEntryPoint::class.java)
         mRhymer = entryPoint.rhymer()
         mFavorites = entryPoint.favorites()
+        mPrefs = entryPoint.prefs()
     }
 
     override fun loadInBackground(): ResultListData<RTEntryViewModel> {
@@ -50,7 +53,7 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
         val before = System.currentTimeMillis()
 
         if (TextUtils.isEmpty(query)) return emptyResult()
-        val results = mRhymer.getRhymingWords(query)
+        val results = if (mPrefs.isNearRhymes) mRhymer.getNearRhymingWords(query) else mRhymer.getRhymingWords(query)
         if (results.isEmpty()) return emptyResult()
 
         // The favorite set flags matching words (their pills get the gold border); favorites are no

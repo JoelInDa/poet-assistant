@@ -116,6 +116,10 @@ object ResultListFactory {
             binding.btnStarQuery.visibility = View.GONE
             binding.btnDelete.visibility = View.VISIBLE
         }
+        // The perfect/near rhyme toggle only makes sense on the rhymer.
+        if (tab == Tab.RHYMER) {
+            binding.btnRhymeMode.visibility = View.VISIBLE
+        }
     }
 
     /**
