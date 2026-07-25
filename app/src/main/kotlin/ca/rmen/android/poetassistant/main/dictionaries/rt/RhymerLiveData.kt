@@ -66,8 +66,11 @@ class RhymerLiveData(context: Context, val query: String) : ResultListLiveData<R
                 data.add(RTEntryViewModel(context, RTEntryViewModel.Type.HEADING, "$query (${result.variant + 1})"))
             }
             result.sections.forEach { section ->
-                data.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING,
-                        context.resources.getQuantityString(R.plurals.rhyme_syllables, section.syllables, section.syllables)))
+                // syllables == 0 is the near-rhyme flat list: best-first, no syllable heading.
+                if (section.syllables > 0) {
+                    data.add(RTEntryViewModel(context, RTEntryViewModel.Type.SUBHEADING,
+                            context.resources.getQuantityString(R.plurals.rhyme_syllables, section.syllables, section.syllables)))
+                }
                 section.words.forEach { rhyme ->
                     data.add(RTEntryViewModel(context, RTEntryViewModel.Type.WORD, rhyme.word,
                             favorites.contains(rhyme.word), true, rhyme.frequency))

@@ -94,7 +94,21 @@ def load():
     return key_words, word_keys
 
 
-def near_rhymes(word, key_words, word_keys, threshold=1.6, top=25):
+THRESHOLD = 1.6     # a candidate must be at least this phonetically close to qualify at all
+FREQ_WEIGHT = 0.06  # blend closeness with commonness (distance stays dominant; freq only smooths)
+MAX_ZIPF = 8.0
+SCORE_CUTOFF = 1.0  # include everything scoring at least this well...
+MIN_RESULTS = 25    # ...but always show at least this many (dip below the cutoff if needed)...
+MAX_RESULTS = 200   # ...and never more than this.
+
+
+def combined_score(dist, freq):
+    """Lower is better: phonetic distance plus a rarity penalty, so common + close wins and the
+    obscure tail sinks. freq is round(zipf*100)."""
+    return dist + FREQ_WEIGHT * (MAX_ZIPF - freq / 100.0)
+
+
+def near_rhymes(word, key_words, word_keys, threshold=THRESHOLD, cutoff=SCORE_CUTOFF):
     qkeys = [k.split() for k in word_keys.get(word, [])]
     if not qkeys:
         return []
@@ -112,8 +126,10 @@ def near_rhymes(word, key_words, word_keys, threshold=1.6, top=25):
                 continue
             if w not in scored or dist < scored[w][0]:
                 scored[w] = (dist, f)
-    ranked = sorted(scored.items(), key=lambda kv: (round(kv[1][0], 3), -kv[1][1], kv[0]))
-    return [(w, d, f) for w, (d, f) in ranked[:top]]
+    ranked = sorted(scored.items(), key=lambda kv: combined_score(kv[1][0], kv[1][1]))
+    n_below = sum(1 for _, (d, f) in ranked if combined_score(d, f) <= cutoff)
+    n = min(max(n_below, MIN_RESULTS), MAX_RESULTS, len(ranked))
+    return [(w, d, f, combined_score(d, f)) for w, (d, f) in ranked[:n]]
 
 
 if __name__ == "__main__":
@@ -122,5 +138,8 @@ if __name__ == "__main__":
                              "month", "silver", "dream", "home"]
     for s in seeds:
         nr = near_rhymes(s, key_words, word_keys)
-        print(f"\n=== near rhymes for {s} ===")
-        print("  " + ", ".join(f"{w}[{d:.2f}]" for w, d, f in nr))
+        last = nr[-1] if nr else None
+        print(f"\n=== {s}: {len(nr)} near rhymes (last score {last[3]:.2f})" if last else f"\n=== {s}: 0")
+        # show the boundary: words around positions 20-30 to judge where quality is at the cutoff
+        tail = nr[max(0, len(nr) - 12):]
+        print("  ...tail: " + ", ".join(f"{w}[s{sc:.2f} f{f}]" for w, d, f, sc in tail))

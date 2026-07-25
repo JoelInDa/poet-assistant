@@ -41,8 +41,13 @@ class RhymeWord(val word: String, val frequency: Int)
 class Rhymer(private val embeddedDb: EmbeddedDb) {
 
     companion object {
-        // Max phonetic tail distance for a near rhyme (tuned in tools' nearrhyme.py).
-        private const val NEAR_THRESHOLD = 1.6
+        // Near-rhyme tuning (kept in sync with tools/rhymedb/nearrhyme.py).
+        private const val NEAR_THRESHOLD = 1.6    // max phonetic tail distance to qualify at all
+        private const val NEAR_FREQ_WEIGHT = 0.06 // blend closeness with commonness (distance dominant)
+        private const val NEAR_MAX_ZIPF = 8.0
+        private const val NEAR_SCORE_CUTOFF = 1.0 // show everything scoring at least this well...
+        private const val NEAR_MIN = 25           // ...but at least this many (dipping below cutoff)...
+        private const val NEAR_MAX = 200          // ...and never more than this.
     }
 
     fun isLoaded(): Boolean = embeddedDb.isLoaded()
@@ -79,14 +84,14 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
         // A candidate word can have several pronunciations; keep its closest, and drop any word that
         // is also a perfect rhyme (it belongs in the perfect view).
         val perfect = HashSet<String>()
-        val best = HashMap<String, Triple<Int, Int, Double>>() // word -> (syllables, frequency, dist)
+        val best = HashMap<String, Pair<Int, Double>>() // word -> (frequency, dist)
         embeddedDb.query(
-            false, "pronunciation", arrayOf("word", "syllables", "frequency", "rhyme_key"),
+            false, "pronunciation", arrayOf("word", "frequency", "rhyme_key"),
             "(rhyme_key = ? OR rhyme_key GLOB ?) AND word != ?", arrayOf(vowel, "$vowel *", excludeWord),
             null, null
         )?.use { cursor ->
             while (cursor.moveToNext()) {
-                val candKey = cursor.getString(3)
+                val candKey = cursor.getString(2)
                 val candWord = cursor.getString(0)
                 if (candKey == rhymeKey) {
                     perfect.add(candWord)
@@ -95,24 +100,29 @@ class Rhymer(private val embeddedDb: EmbeddedDb) {
                 val dist = Phonetics.tailDist(queryTail, candKey.split(' '))
                 if (dist <= 0.0 || dist > NEAR_THRESHOLD) continue
                 val existing = best[candWord]
-                if (existing == null || dist < existing.third) {
-                    best[candWord] = Triple(cursor.getInt(1), cursor.getInt(2), dist)
+                if (existing == null || dist < existing.second) {
+                    best[candWord] = cursor.getInt(1) to dist
                 }
             }
         }
         perfect.forEach { best.remove(it) }
+        if (best.isEmpty()) return emptyList()
 
-        // Group by syllable count; within a group, closest first then most common.
-        return best.entries
-            .groupBy { it.value.first }
-            .toSortedMap()
-            .map { (syllables, entries) ->
-                val words = entries
-                    .sortedWith(compareBy({ it.value.third }, { -it.value.second }, { it.key }))
-                    .map { RhymeWord(it.key, it.value.second) }
-                RhymeSection(syllables, words)
-            }
+        // One flat, best-first list (closeness matters more than syllable count for slant rhymes,
+        // and grouping would bury great multi-syllable matches). RhymeSection syllables=0 tells
+        // RhymerLiveData not to draw a syllable heading. Count = everything scoring at least as well
+        // as the cutoff, clamped to [NEAR_MIN, NEAR_MAX]: a floor so sparse words still show a
+        // useful list, a ceiling so dense vowels don't dump thousands.
+        val ranked = best.entries
+            .sortedWith(compareBy({ nearScore(it.value.second, it.value.first) }, { it.key }))
+        val belowCutoff = ranked.count { nearScore(it.value.second, it.value.first) <= NEAR_SCORE_CUTOFF }
+        val count = belowCutoff.coerceIn(NEAR_MIN, NEAR_MAX).coerceAtMost(ranked.size)
+        return listOf(RhymeSection(0, ranked.take(count).map { RhymeWord(it.key, it.value.first) }))
     }
+
+    /** Lower is better: phonetic distance plus a rarity penalty, so common + close wins. */
+    private fun nearScore(dist: Double, frequency: Int): Double =
+        dist + NEAR_FREQ_WEIGHT * (NEAR_MAX_ZIPF - frequency / 100.0)
 
     private fun rhymesForKey(rhymeKey: String, excludeWord: String): List<RhymeSection> {
         // Rows come out grouped by syllable count, common-first within each group. A word can have
